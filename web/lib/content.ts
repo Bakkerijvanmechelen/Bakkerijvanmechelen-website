@@ -75,3 +75,6 @@ export const testimonials = [
     quote: "Ik werk hier al 19 jaar, broden en pistolets maken blijft een passie.",
   },
 ];
+
+/** Productgroepen waaronder technische fiches op de ZAS-pagina worden getoond. */
+export const zasProducts = ["Algemeen", ...products.map((p) => p.title)];

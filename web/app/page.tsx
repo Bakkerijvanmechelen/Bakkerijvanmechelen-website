@@ -1,5 +1,6 @@
 import Image from "next/image";
 import ContactForm from "@/components/ContactForm";
+import Reveal from "@/components/Reveal";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { company, products, services, testimonials } from "@/lib/content";
@@ -17,17 +18,17 @@ export default function Home() {
             fill
             priority
             sizes="100vw"
-            className="object-cover opacity-70"
+            className="hero-zoom object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
           <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-40">
-            <p className="mb-4 text-sm font-bold uppercase tracking-[0.3em] text-sage-light">
+            <p className="fade-up mb-4 text-sm font-bold uppercase tracking-[0.3em] text-sage-light">
               Ambachtelijke bakkerij voor uw zaak
             </p>
-            <h1 className="max-w-3xl font-display text-5xl leading-[1.05] sm:text-7xl">
+            <h1 className="fade-up max-w-3xl font-display text-5xl leading-[1.05] sm:text-7xl" style={{ animationDelay: "120ms" }}>
               Vakmanschap &amp; traditie
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-flour/90">
+            <p className="fade-up mt-6 max-w-2xl text-lg leading-relaxed text-flour/90" style={{ animationDelay: "260ms" }}>
               Bakkerij Van Mechelen is een ambachtelijke bakkerij die sinds 2003 uw smaakvolle en krokante
               pistolets bakt, maar ook heerlijke patisserie en vlaaien maakt. Met ingrediënten uit de streek
               streven wij niet alleen naar de beste kwaliteit, maar zorgen wij er ook voor dat ze voedzaam en
@@ -36,7 +37,8 @@ export default function Home() {
             </p>
             <a
               href="#contact"
-              className="mt-8 inline-block rounded-full bg-sage-light px-8 py-3 font-bold text-ink transition hover:bg-flour"
+              className="fade-up mt-8 inline-block rounded-full bg-sage-light px-8 py-3 font-bold text-ink transition hover:-translate-y-0.5 hover:bg-flour"
+              style={{ animationDelay: "400ms" }}
             >
               Contacteer ons
             </a>
@@ -45,13 +47,13 @@ export default function Home() {
 
         {/* Producten */}
         <section id="producten" className="mx-auto max-w-6xl px-5 py-24">
-          <h2 className="font-display text-4xl sm:text-5xl">Producten</h2>
+          <Reveal><h2 className="font-display text-4xl sm:text-5xl">Producten</h2></Reveal>
           <p className="mt-4 max-w-2xl text-lg">
             Onze broden zijn gekend om hun lekkere smaak, maar ook om de lange versheid ervan.
           </p>
           <div className="mt-12 grid gap-8 sm:grid-cols-2">
-            {products.map((p) => (
-              <article key={p.id} className="group overflow-hidden rounded-2xl bg-white shadow-sm">
+            {products.map((p, i) => (
+              <Reveal as="article" key={p.id} delay={(i % 2) * 120} className="group overflow-hidden rounded-2xl bg-white shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <Image
                     src={p.image}
@@ -68,7 +70,7 @@ export default function Home() {
                     Contacteer ons
                   </a>
                 </div>
-              </article>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -83,13 +85,13 @@ export default function Home() {
             className="object-cover opacity-25"
           />
           <div className="relative mx-auto max-w-6xl px-5">
-            <h2 className="font-display text-4xl sm:text-5xl">Voor wie?</h2>
+            <Reveal><h2 className="font-display text-4xl sm:text-5xl">Voor wie?</h2></Reveal>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {services.map((s) => (
-                <article key={s.title} className="rounded-2xl border border-flour/20 bg-ink/60 p-6 backdrop-blur">
+              {services.map((s, i) => (
+                <Reveal as="article" key={s.title} delay={i * 100} className="rounded-2xl border border-flour/20 bg-ink/60 p-6 backdrop-blur transition hover:-translate-y-1 hover:border-sage-light">
                   <h3 className="font-display text-2xl text-sage-light">{s.title}</h3>
                   <p className="mt-3 leading-relaxed">{s.text}</p>
-                </article>
+                </Reveal>
               ))}
             </div>
             <p className="mt-12 max-w-3xl text-lg leading-relaxed">
@@ -108,7 +110,7 @@ export default function Home() {
         {/* Over ons */}
         <section id="over-ons" className="mx-auto max-w-6xl px-5 py-24">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div className="relative aspect-square overflow-hidden rounded-2xl">
+            <Reveal className="relative aspect-square overflow-hidden rounded-2xl">
               <Image
                 src="/images/ambachtelijk-brood.jpg"
                 alt="Ambachtelijk brood"
@@ -116,8 +118,8 @@ export default function Home() {
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover"
               />
-            </div>
-            <div>
+            </Reveal>
+            <Reveal delay={150}>
               <h2 className="font-display text-4xl sm:text-5xl">Vakmanschap &amp; traditie</h2>
               <p className="mt-6 text-lg leading-relaxed">
                 Met meer dan 20 jaar aan ervaring staat Bakkerij Van Mechelen voor lekkere producten die
@@ -137,17 +139,19 @@ export default function Home() {
                   strenge zelfcontrole.
                 </p>
               </div>
-            </div>
+            </Reveal>
           </div>
 
           <div className="mt-16 grid gap-6 sm:grid-cols-2">
-            {testimonials.map((t) => (
-              <figure key={t.name} className="rounded-2xl bg-white p-8 shadow-sm">
+            {testimonials.map((t, i) => (
+              <Reveal as="div" key={t.name} delay={i * 150} className="rounded-2xl bg-white p-8 shadow-sm">
+              <figure>
                 <blockquote className="font-display text-xl leading-snug">“{t.quote}”</blockquote>
                 <figcaption className="mt-4 text-sm font-bold uppercase tracking-wider text-crust">
                   {t.name}
                 </figcaption>
               </figure>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -155,7 +159,7 @@ export default function Home() {
         {/* Contact */}
         <section id="contact" className="relative overflow-hidden bg-white py-24">
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[1fr_1.4fr]">
-            <div>
+            <Reveal>
               <h2 className="font-display text-4xl sm:text-5xl">Contacteer ons</h2>
               <address className="mt-6 not-italic leading-relaxed text-lg">
                 <p className="font-bold">{company.legalName}</p>
@@ -172,8 +176,10 @@ export default function Home() {
                   </a>
                 </p>
               </address>
-            </div>
-            <ContactForm />
+            </Reveal>
+            <Reveal delay={150}>
+              <ContactForm />
+            </Reveal>
           </div>
         </section>
       </main>
