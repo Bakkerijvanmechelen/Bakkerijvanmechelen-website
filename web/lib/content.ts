@@ -75,3 +75,11 @@ export const testimonials = [
     quote: "Ik werk hier al 19 jaar, broden en pistolets maken blijft een passie.",
   },
 ];
+
+/** Waarover een bezoeker van de ZAS-pagina een melding kan maken. */
+export const zasReportTopics = [
+  "Fout in een technische fiche",
+  "Een document ontbreekt",
+  "Ik kan een document niet openen",
+  "Iets anders",
+];

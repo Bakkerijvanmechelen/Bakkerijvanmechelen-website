@@ -2,25 +2,33 @@
 
 import { useActionState, useState } from "react";
 import { createCategory, deleteCategory, renameCategory, type FormState } from "@/app/admin/actions";
-import { btnCls, inputCls } from "./ActionForm";
+import { dangerBtn, fieldCls, primaryBtn, secondaryBtn } from "./ui";
 
 type Cat = { id: string; name: string; count: number };
 
 const note = (s: FormState) =>
   s && (
-    <p role={s.ok ? "status" : "alert"} className={`text-sm font-bold ${s.ok ? "text-green-800" : "text-red-700"}`}>
+    <p role={s.ok ? "status" : "alert"} className={`font-bold ${s.ok ? "text-green-800" : "text-red-700"}`}>
+      {s.ok ? "✓ " : ""}
       {s.message}
     </p>
   );
 
 function AddCategory() {
-  const [state, action, pending] = useActionState<FormState, FormData>(createCategory, null);
+  const [state, action, pending] = useActionState<FormState, FormData>(async (p, fd) => {
+    const r = await createCategory(p, fd);
+    if (r?.ok) (document.getElementById("new-cat") as HTMLInputElement | null)?.form?.reset();
+    return r;
+  }, null);
   return (
     <form action={action} className="grid gap-2">
+      <label htmlFor="new-cat" className="font-bold">
+        Nieuwe categorie
+      </label>
       <div className="flex flex-wrap gap-3">
-        <input name="name" required maxLength={60} placeholder="Nieuwe categorie, bijvoorbeeld 07 Broodjes" className={`${inputCls} sm:max-w-sm`} aria-label="Naam nieuwe categorie" />
-        <button disabled={pending} className={btnCls}>
-          Toevoegen
+        <input id="new-cat" name="name" required maxLength={60} placeholder="Bijvoorbeeld: 07 Broodjes" className={`${fieldCls} sm:max-w-sm`} />
+        <button disabled={pending} className={primaryBtn}>
+          {pending ? "Bezig…" : "+ Toevoegen"}
         </button>
       </div>
       {note(state)}
@@ -33,22 +41,24 @@ function Row({ cat }: { cat: Cat }) {
   const [delState, del, deleting] = useActionState<FormState, FormData>(deleteCategory, null);
   const [confirming, setConfirming] = useState(false);
   const [typed, setTyped] = useState("");
+  const [name, setName] = useState(cat.name);
+  const changed = name.trim() !== cat.name;
 
   return (
-    <li className="rounded-xl bg-white p-4 shadow-sm">
+    <li className="rounded-xl border-2 border-ink/10 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <form action={rename} className="flex flex-1 flex-wrap items-center gap-3">
+        <form action={rename} className="flex min-w-60 flex-1 flex-wrap items-center gap-3">
           <input type="hidden" name="id" value={cat.id} />
-          <input name="name" defaultValue={cat.name} required maxLength={60} aria-label={`Naam van ${cat.name}`} className={`${inputCls} min-w-48 flex-1 sm:max-w-xs`} />
-          <button disabled={renaming} className="text-sm font-bold text-crust underline">
-            Hernoemen
+          <input name="name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={60} aria-label={`Naam van categorie ${cat.name}`} className={`${fieldCls} min-w-48 flex-1 sm:max-w-xs`} />
+          <button disabled={renaming || !changed} className={secondaryBtn}>
+            {renaming ? "Bezig…" : "Naam opslaan"}
           </button>
-          <span className="text-sm text-ink/60">
-            {cat.count} document{cat.count === 1 ? "" : "en"}
-          </span>
         </form>
+        <span className="text-ink/60">
+          {cat.count} document{cat.count === 1 ? "" : "en"}
+        </span>
         {!confirming && (
-          <button onClick={() => setConfirming(true)} className="text-sm font-bold text-red-700 underline">
+          <button onClick={() => setConfirming(true)} className="rounded px-1 py-1 font-bold text-red-700 underline hover:text-red-900">
             Verwijderen
           </button>
         )}
@@ -56,35 +66,27 @@ function Row({ cat }: { cat: Cat }) {
       {note(renameState)}
 
       {confirming && (
-        <form action={del} className="mt-4 grid gap-3 rounded-lg border-2 border-red-300 bg-red-50 p-4">
+        <form action={del} className="mt-4 grid gap-3 rounded-xl border-2 border-red-300 bg-red-50 p-4">
           <input type="hidden" name="id" value={cat.id} />
-          <p className="text-sm">
-            <strong>Let op, dit kan niet ongedaan worden gemaakt.</strong> Je verwijdert de categorie “{cat.name}”
-            {cat.count > 0 ? (
+          <p>
+            <strong>Let op: dit kan niet ongedaan worden gemaakt.</strong> Je verwijdert de categorie “{cat.name}”
+            {cat.count > 0 && (
               <>
                 {" "}
                 <strong>
-                  samen met {cat.count} document{cat.count === 1 ? "" : "en"}
+                  en de {cat.count} document{cat.count === 1 ? "" : "en"} erin
                 </strong>{" "}
                 (de bestanden worden gewist)
               </>
-            ) : null}
-            . Typ de naam van de categorie om te bevestigen.
+            )}
+            .
           </p>
-          <input
-            name="confirm"
-            value={typed}
-            onChange={(e) => setTyped(e.target.value)}
-            autoComplete="off"
-            placeholder={cat.name}
-            aria-label="Typ de naam van de categorie om te bevestigen"
-            className={inputCls}
-          />
-          <div className="flex gap-3">
-            <button
-              disabled={deleting || typed.trim() !== cat.name}
-              className="rounded-full bg-red-700 px-6 py-2.5 font-bold text-white transition hover:bg-red-800 disabled:opacity-40"
-            >
+          <label className="grid gap-1 font-bold">
+            Typ <q>{cat.name}</q> om te bevestigen
+            <input name="confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" placeholder={cat.name} className={fieldCls} />
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <button disabled={deleting || typed.trim() !== cat.name} className={dangerBtn}>
               {deleting ? "Verwijderen…" : "Definitief verwijderen"}
             </button>
             <button
@@ -93,10 +95,11 @@ function Row({ cat }: { cat: Cat }) {
                 setConfirming(false);
                 setTyped("");
               }}
-              className="rounded-full border border-ink/30 px-6 py-2.5 font-bold"
+              className={secondaryBtn}
             >
-              Annuleren
+              Nee, behouden
             </button>
+            {typed.trim() !== cat.name && <span className="text-sm text-red-900">De knop werkt pas als de naam exact klopt.</span>}
           </div>
           {note(delState)}
         </form>
@@ -107,13 +110,13 @@ function Row({ cat }: { cat: Cat }) {
 
 export default function CategoryManager({ categories }: { categories: Cat[] }) {
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-6">
       <AddCategory />
       <ul className="grid gap-3">
         {categories.map((c) => (
           <Row key={c.id} cat={c} />
         ))}
-        {!categories.length && <li className="text-ink/60">Nog geen categorieën.</li>}
+        {!categories.length && <li className="rounded-xl bg-flour px-6 py-8 text-center text-ink/70">Er zijn nog geen categorieën. Voeg er hierboven één toe.</li>}
       </ul>
     </div>
   );

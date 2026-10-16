@@ -56,24 +56,29 @@ export async function changeOwnPassword(_prev: FormState, formData: FormData): P
 export async function toggleHandled(id: string, handled: boolean) {
   await requireAdmin();
   await adminClient().from("contact_requests").update({ handled }).eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
+}
+
+export async function markAllHandled() {
+  await requireAdmin();
+  await adminClient().from("contact_requests").update({ handled: true }).eq("handled", false);
+  revalidatePath("/admin", "layout");
 }
 
 export async function deleteRequest(id: string) {
   await requireAdmin();
   await adminClient().from("contact_requests").delete().eq("id", id);
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }
 
 /* ---------- ZAS ---------- */
 
-export async function changeZasPassword(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function saveZasPassword(password: string): Promise<FormState> {
   await requireAdmin();
-  const password = String(formData.get("password") ?? "");
-  if (password.length < 8) return { ok: false, message: "Gebruik minstens 8 tekens." };
-  await setZasPassword(password);
-  revalidatePath("/admin/zas");
-  return { ok: true, message: "ZAS-wachtwoord opgeslagen. Bestaande sessies zijn afgemeld." };
+  if (password.trim().length < 8) return { ok: false, message: "Gebruik minstens 8 tekens." };
+  await setZasPassword(password.trim());
+  revalidatePath("/admin", "layout");
+  return { ok: true, message: "Het wachtwoord is opgeslagen." };
 }
 
 const cleanName = (name: string) =>
@@ -99,7 +104,7 @@ export async function createCategory(_prev: FormState, formData: FormData): Prom
   if (!name) return { ok: false, message: "Geef de categorie een naam." };
   const { error } = await adminClient().from("zas_categories").insert({ name });
   if (error) return { ok: false, message: error.code === "23505" ? "Die categorie bestaat al." : "Toevoegen mislukt." };
-  revalidatePath("/admin/zas");
+  revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
   return { ok: true, message: `Categorie “${name}” toegevoegd.` };
 }
@@ -111,7 +116,7 @@ export async function renameCategory(_prev: FormState, formData: FormData): Prom
   if (!name) return { ok: false, message: "Geef de categorie een naam." };
   const { error } = await adminClient().from("zas_categories").update({ name }).eq("id", id);
   if (error) return { ok: false, message: error.code === "23505" ? "Die naam bestaat al." : "Hernoemen mislukt." };
-  revalidatePath("/admin/zas");
+  revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
   return { ok: true, message: "Opgeslagen." };
 }
@@ -138,7 +143,7 @@ export async function deleteCategory(_prev: FormState, formData: FormData): Prom
   const { error } = await supabase.from("zas_categories").delete().eq("id", id);
   if (error) return { ok: false, message: "Verwijderen mislukt." };
 
-  revalidatePath("/admin/zas");
+  revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
   return { ok: true, message: `Categorie “${cat.name}” verwijderd.` };
 }
@@ -267,7 +272,7 @@ export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number
     else saved++;
   }
 
-  revalidatePath("/admin/zas");
+  revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
   return { saved, errors };
 }
@@ -284,12 +289,25 @@ export async function discardUploads(paths: string[]) {
   if (toRemove.length) await supabase.storage.from(BUCKET).remove(toRemove);
 }
 
+export async function updateDocument(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160);
+  const categoryId = String(formData.get("category") ?? "");
+  if (!title) return { ok: false, message: "De naam mag niet leeg zijn." };
+  const { error } = await adminClient().from("zas_documents").update({ title, category_id: categoryId }).eq("id", id);
+  if (error) return { ok: false, message: "Opslaan mislukt." };
+  revalidatePath("/admin", "layout");
+  revalidatePath("/ZAS");
+  return { ok: true, message: "Opgeslagen." };
+}
+
 export async function deleteDocument(id: string) {
   await requireAdmin();
   const supabase = adminClient();
   const { data } = await supabase.from("zas_documents").select("file_path").eq("id", id).maybeSingle();
   if (data) await supabase.storage.from(BUCKET).remove([data.file_path]);
   await supabase.from("zas_documents").delete().eq("id", id);
-  revalidatePath("/admin/zas");
+  revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
 }

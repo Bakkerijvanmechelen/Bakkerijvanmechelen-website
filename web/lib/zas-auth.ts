@@ -27,6 +27,11 @@ export async function getStoredHash() {
   return data?.value ?? null;
 }
 
+export async function getZasPasswordInfo() {
+  const { data } = await adminClient().from("site_settings").select("updated_at").eq("key", SETTING).maybeSingle();
+  return { isSet: !!data, updatedAt: (data?.updated_at as string | undefined) ?? null };
+}
+
 export async function setZasPassword(password: string) {
   const { error } = await adminClient()
     .from("site_settings")

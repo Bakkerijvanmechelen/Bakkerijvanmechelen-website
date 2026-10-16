@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import ZasCatalog from "@/components/ZasCatalog";
+import ReportDialog, { ReportButton } from "@/components/ReportDialog";
 import ZasLogin from "@/components/ZasLogin";
 import { adminClient } from "@/lib/supabase/admin";
 import { isZasUnlocked } from "@/lib/zas-auth";
@@ -51,30 +52,41 @@ export default async function Zas() {
     docs: items.filter((d) => d.category_id === c.id),
   }));
 
+  const totalDocs = items.length;
+
   return (
     <>
       <header className="relative overflow-hidden bg-ink text-flour">
         <Image src="/images/brood-industriele-bakker.jpg" alt="" fill priority sizes="100vw" className="hero-zoom object-cover opacity-30" />
-        <div className="relative mx-auto flex max-w-6xl items-start justify-between gap-6 px-5 pb-16 pt-8">
-          <div>
-            <Image src="/images/Logo-Bakkerij-Van-Mechelen-wit.png" alt="Bakkerij Van Mechelen" width={64} height={68} />
-            <p className="fade-up mt-10 text-sm font-bold uppercase tracking-[0.3em] text-sage-light">ZAS · Ziekenhuis aan de Stroom</p>
-            <h1 className="fade-up mt-3 font-display text-5xl sm:text-6xl" style={{ animationDelay: "120ms" }}>
-              Welkom bij Bakkerij Van Mechelen !
-            </h1>
-            <p className="fade-up mt-4 max-w-xl text-lg text-flour/90" style={{ animationDelay: "240ms" }}>
-              Hieronder kan u per artikelgroep zoeken naar het artikel waarvan u graag onze technische fiche wil raadplegen en/of downloaden.
-            </p>
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-transparent to-ink" />
+        <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-6 sm:pb-28">
+          <div className="flex items-center justify-between gap-4">
+            <Image src="/images/Logo-Bakkerij-Van-Mechelen-wit.png" alt="Bakkerij Van Mechelen" width={56} height={60} />
+            <div className="flex items-center gap-3 text-sm">
+              <ReportButton className="rounded-full border border-flour/40 px-4 py-2 font-bold backdrop-blur transition hover:bg-flour hover:text-ink">Probleem melden</ReportButton>
+              <form action={lock}>
+                <button className="rounded-full px-3 py-2 underline decoration-flour/40 underline-offset-4 hover:text-sage-light">Afmelden</button>
+              </form>
+            </div>
           </div>
-          <form action={lock}>
-            <button className="text-sm underline hover:text-sage-light">Afmelden</button>
-          </form>
+
+          <p className="fade-up mt-14 inline-block rounded-full bg-flour/15 px-4 py-1.5 text-sm font-bold uppercase tracking-[0.2em] text-sage-light backdrop-blur">ZAS · Ziekenhuis aan de Stroom</p>
+          <h1 className="fade-up mt-5 max-w-3xl font-display text-4xl leading-tight sm:text-6xl" style={{ animationDelay: "120ms" }}>
+            Welkom bij Bakkerij Van Mechelen !
+          </h1>
+          <p className="fade-up mt-5 max-w-2xl text-lg leading-relaxed text-flour/85" style={{ animationDelay: "240ms" }}>
+            Hieronder kan u per artikelgroep zoeken naar het artikel waarvan u graag onze technische fiche wil raadplegen en/of downloaden.
+          </p>
+          <p className="fade-up mt-6 text-flour/70" style={{ animationDelay: "340ms" }}>
+            {totalDocs} technische fiche{totalDocs === 1 ? "" : "s"} · {categories.length} artikelgroepen
+          </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-16">
+      <main className="mx-auto max-w-6xl px-5 pb-28">
         <ZasCatalog groups={groups} />
       </main>
+      <ReportDialog />
     </>
   );
 }
