@@ -10,41 +10,59 @@ export default function UploadForm({ products }: { products: string[] }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  const titleFrom = (name: string) =>
+    name.replace(/\.[^.]+$/, "").replace(/[_]+/g, " ").replace(/\s+/g, " ").trim();
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const file = fd.get("file");
-    if (!(file instanceof File) || !file.size) return setMsg({ ok: false, text: "Kies een bestand." });
+    const files = fd.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
+    if (!files.length) return setMsg({ ok: false, text: "Kies minstens één bestand." });
+
+    const product = String(fd.get("product") ?? "");
+    const customTitle = String(fd.get("title") ?? "").trim();
+    const description = String(fd.get("description") ?? "");
 
     setBusy(true);
     setMsg(null);
-    try {
-      const { path, token } = await createUpload(file.name, file.size);
-      const { error } = await supabaseBrowser().storage.from("zas-documents").uploadToSignedUrl(path, token, file);
-      if (error) throw new Error("Uploaden mislukt.");
-      const res = await registerDocument({
-        path,
-        fileName: file.name,
-        title: String(fd.get("title") ?? ""),
-        product: String(fd.get("product") ?? ""),
-        description: String(fd.get("description") ?? ""),
-        mimeType: file.type,
-        size: file.size,
-      });
-      setMsg({ ok: !!res?.ok, text: res?.message ?? "Klaar." });
-      if (res?.ok) form.current?.reset();
-    } catch (err) {
-      setMsg({ ok: false, text: err instanceof Error ? err.message : "Er ging iets mis." });
-    } finally {
-      setBusy(false);
+    const failed: string[] = [];
+    const supabase = supabaseBrowser();
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setMsg({ ok: true, text: `Uploaden ${i + 1} van ${files.length}: ${file.name}` });
+      try {
+        const { path, token } = await createUpload(file.name, file.size);
+        const { error } = await supabase.storage.from("zas-documents").uploadToSignedUrl(path, token, file);
+        if (error) throw new Error("Uploaden mislukt.");
+        const res = await registerDocument({
+          path,
+          fileName: file.name,
+          // Eén bestand mag een eigen titel hebben; bij meerdere komt de titel uit de bestandsnaam.
+          title: files.length === 1 && customTitle ? customTitle : titleFrom(file.name),
+          product,
+          description,
+          mimeType: file.type,
+          size: file.size,
+        });
+        if (!res?.ok) throw new Error(res?.message ?? "Opslaan mislukt.");
+      } catch (err) {
+        failed.push(`${file.name} (${err instanceof Error ? err.message : "fout"})`);
+      }
     }
+    setBusy(false);
+    const done = files.length - failed.length;
+    setMsg({
+      ok: failed.length === 0,
+      text: failed.length ? `${done} van ${files.length} geüpload. Mislukt: ${failed.join(", ")}` : `${done} document${done === 1 ? "" : "en"} toegevoegd.`,
+    });
+    if (done) form.current?.reset();
   }
 
   return (
     <form ref={form} onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
       <label className="grid gap-1 text-sm font-bold sm:col-span-2">
-        Titel
-        <input name="title" required maxLength={160} placeholder="Technische fiche, Pistolet wit" className={inputCls} />
+        Titel (optioneel, alleen bij één bestand; anders wordt de bestandsnaam gebruikt)
+        <input name="title" maxLength={160} placeholder="Lang wit brood 800g" className={inputCls} />
       </label>
       <label className="grid gap-1 text-sm font-bold">
         Product
@@ -55,8 +73,8 @@ export default function UploadForm({ products }: { products: string[] }) {
         </select>
       </label>
       <label className="grid gap-1 text-sm font-bold">
-        Bestand (pdf, afbeelding, Word, Excel; max. 50 MB)
-        <input name="file" type="file" required accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" className={inputCls} />
+        Bestanden (pdf, afbeelding, Word, Excel; max. 50 MB per bestand, meerdere tegelijk mogelijk)
+        <input name="file" type="file" required multiple accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" className={inputCls} />
       </label>
       <label className="grid gap-1 text-sm font-bold sm:col-span-2">
         Korte omschrijving (optioneel)
@@ -69,7 +87,7 @@ export default function UploadForm({ products }: { products: string[] }) {
       )}
       <div className="sm:col-span-2">
         <button disabled={busy} className={btnCls}>
-          {busy ? "Uploaden…" : "Uploaden"}
+          {busy ? "Bezig…" : "Uploaden"}
         </button>
       </div>
     </form>

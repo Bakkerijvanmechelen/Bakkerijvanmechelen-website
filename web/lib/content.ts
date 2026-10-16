@@ -76,5 +76,5 @@ export const testimonials = [
   },
 ];
 
-/** Productgroepen waaronder technische fiches op de ZAS-pagina worden getoond. */
-export const zasProducts = ["Algemeen", ...products.map((p) => p.title)];
+/** Artikelgroepen van de ZAS-pagina, zoals op de vorige website. */
+export const zasProducts = ["01 Brood", "03 Koeken", "04 Pistolets", "05 Patisserie", "06 Vlaaien"];
