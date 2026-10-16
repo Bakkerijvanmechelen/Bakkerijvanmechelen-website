@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import ZasCatalog from "@/components/ZasCatalog";
 import ReportDialog, { ReportButton } from "@/components/ReportDialog";
 import ZasLogin from "@/components/ZasLogin";
@@ -26,6 +27,9 @@ export default async function Zas() {
           <h1 className="mt-6 font-display text-3xl">ZAS</h1>
           <p className="mt-2 text-flour/80">Ziekenhuis aan de Stroom. Geef het wachtwoord in om de productinformatie te bekijken.</p>
           <ZasLogin />
+          <Link href="/" className="mt-5 inline-block text-sm text-flour/70 underline underline-offset-4 hover:text-sage-light">
+            ← Terug naar home
+          </Link>
         </div>
       </main>
     );
@@ -53,13 +57,16 @@ export default async function Zas() {
         <div className="absolute inset-0 bg-gradient-to-b from-ink/50 via-transparent to-ink" />
         <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-6 sm:pb-28">
           <div className="flex items-center justify-between gap-4">
-            <Image src="/images/Logo-Bakkerij-Van-Mechelen-wit.png" alt="Bakkerij Van Mechelen" width={56} height={60} />
-            <div className="flex items-center gap-3 text-sm">
+            <Link href="/" aria-label="Bakkerij Van Mechelen, naar home">
+              <Image src="/images/Logo-Bakkerij-Van-Mechelen-wit.png" alt="Bakkerij Van Mechelen" width={56} height={60} />
+            </Link>
+            <nav aria-label="ZAS" className="flex items-center gap-2 text-sm sm:gap-3">
+              <Link href="/" className="rounded-full px-3 py-2 font-bold transition hover:bg-flour/15">Home</Link>
               <ReportButton className="rounded-full border border-flour/40 px-4 py-2 font-bold backdrop-blur transition hover:bg-flour hover:text-ink">Probleem melden</ReportButton>
               <form action={lock}>
                 <button className="rounded-full px-3 py-2 underline decoration-flour/40 underline-offset-4 hover:text-sage-light">Afmelden</button>
               </form>
-            </div>
+            </nav>
           </div>
 
           <p className="fade-up mt-14 inline-block rounded-full bg-flour/15 px-4 py-1.5 text-sm font-bold uppercase tracking-[0.2em] text-sage-light backdrop-blur">ZAS · Ziekenhuis aan de Stroom</p>
