@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import ZasCatalog from "@/components/ZasCatalog";
-import ReportDialog, { ReportButton } from "@/components/ReportDialog";
 import ZasLogin from "@/components/ZasLogin";
 import { adminClient } from "@/lib/supabase/admin";
 import { isZasUnlocked } from "@/lib/zas-auth";
@@ -62,7 +61,6 @@ export default async function Zas() {
             </Link>
             <nav aria-label="ZAS" className="flex items-center gap-2 text-sm sm:gap-3">
               <Link href="/" className="rounded-full px-3 py-2 font-bold transition hover:bg-flour/15">Home</Link>
-              <ReportButton className="rounded-full border border-flour/40 px-4 py-2 font-bold backdrop-blur transition hover:bg-flour hover:text-ink">Probleem melden</ReportButton>
               <form action={lock}>
                 <button className="rounded-full px-3 py-2 underline decoration-flour/40 underline-offset-4 hover:text-sage-light">Afmelden</button>
               </form>
@@ -85,7 +83,6 @@ export default async function Zas() {
       <main className="mx-auto max-w-6xl px-5 pb-28">
         <ZasCatalog groups={groups} />
       </main>
-      <ReportDialog />
     </>
   );
 }

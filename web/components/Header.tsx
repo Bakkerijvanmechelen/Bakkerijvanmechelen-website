@@ -2,17 +2,28 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { nav } from "@/lib/content";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const close = () => setOpen(false);
+  // Op de homepagina zelf doet een klik op Home niets: dan scrollen we zelf naar boven.
+  const toTop = (e: React.MouseEvent, href: string) => {
+    close();
+    if (href === "" && pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      history.replaceState(null, "", "/");
+    }
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 bg-ink/90 text-flour backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-2">
-        <Link href="/" onClick={close} aria-label="Bakkerij Van Mechelen, naar home">
+        <Link href="/" onClick={(e) => toTop(e, "")} aria-label="Bakkerij Van Mechelen, naar home">
           <Image src="/images/Logo-Bakkerij-Van-Mechelen-wit.png" alt="Bakkerij Van Mechelen" width={52} height={56} priority />
         </Link>
 
@@ -21,7 +32,7 @@ export default function Header() {
           <ul className="flex gap-8 text-sm font-bold uppercase tracking-wider">
             {nav.map((n) => (
               <li key={n.label}>
-                <Link href={`/${n.href}`} className="transition hover:text-sage-light">
+                <Link href={`/${n.href}`} onClick={(e) => toTop(e, n.href)} className="transition hover:text-sage-light">
                   {n.label}
                 </Link>
               </li>
@@ -48,7 +59,7 @@ export default function Header() {
         <ul className="mx-auto max-w-6xl px-5 py-2">
           {nav.map((n) => (
             <li key={n.label}>
-              <Link href={`/${n.href}`} onClick={close} className="block py-3 text-lg font-bold uppercase tracking-wider transition hover:text-sage-light">
+              <Link href={`/${n.href}`} onClick={(e) => toTop(e, n.href)} className="block py-3 text-lg font-bold uppercase tracking-wider transition hover:text-sage-light">
                 {n.label}
               </Link>
             </li>

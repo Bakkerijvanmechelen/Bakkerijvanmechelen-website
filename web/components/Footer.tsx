@@ -1,3 +1,4 @@
+import SocialIcon from "@/components/SocialIcons";
 import { company } from "@/lib/content";
 
 export default function Footer() {
@@ -19,17 +20,21 @@ export default function Footer() {
             {company.email}
           </a>
         </p>
-        <p className="flex gap-5 sm:justify-end">
-          <a href={company.facebook} target="_blank" rel="noopener noreferrer" className="hover:text-sage-light">
-            Facebook
+        <p className="flex items-start gap-3 sm:justify-end">
+          <a href={company.facebook} target="_blank" rel="noopener noreferrer" aria-label="Bakkerij Van Mechelen op Facebook" className="grid size-11 place-items-center rounded-full border border-flour/30 transition hover:border-sage-light hover:text-sage-light">
+            <SocialIcon name="facebook" />
           </a>
-          <a href={company.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-sage-light">
-            Instagram
+          <a href={company.instagram} target="_blank" rel="noopener noreferrer" aria-label="Bakkerij Van Mechelen op Instagram" className="grid size-11 place-items-center rounded-full border border-flour/30 transition hover:border-sage-light hover:text-sage-light">
+            <SocialIcon name="instagram" />
           </a>
         </p>
       </div>
       <div className="border-t border-flour/15 px-5 py-4 text-center text-sm text-flour/70">
         © 2026 Bakkerij Van Mechelen ·{" "}
+        <a href="/privacy" className="underline">
+          Privacyverklaring
+        </a>{" "}
+        ·{" "}
         <a href="/cookiebeleid" className="underline">
           Cookiebeleid
         </a>

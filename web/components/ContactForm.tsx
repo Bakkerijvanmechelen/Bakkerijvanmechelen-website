@@ -45,15 +45,15 @@ export default function ContactForm() {
         <input name="privacy" type="checkbox" required className="mt-1 size-4 accent-crust" />
         <span>
           Ik bevestig hierbij dat mijn gegevens verwerkt mogen worden zoals beschreven in de{" "}
+          <a href="/privacy" className="underline">
+            privacyverklaring
+          </a>{" "}
+          en het{" "}
           <a href="/cookiebeleid" className="underline">
-            privacy- en cookieverklaring
+            cookiebeleid
           </a>
           . *
         </span>
-      </label>
-      <label className="flex items-start gap-3 text-sm sm:col-span-2">
-        <input name="newsletter" type="checkbox" className="mt-1 size-4 accent-crust" />
-        <span>Ik geef toestemming om mij in te schrijven voor de nieuwsbrief en interessante updates te ontvangen.</span>
       </label>
       {state && !state.ok && (
         <p role="alert" className="text-sm font-bold text-red-700 sm:col-span-2">

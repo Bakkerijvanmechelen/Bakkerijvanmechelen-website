@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { openReport } from "./ReportDialog";
 
 export type ZasDoc = {
   id: string;
@@ -160,11 +159,6 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
                                   <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />
                                 </svg>
                               </a>
-                              <button type="button" onClick={() => openReport(d.title)} aria-label={`Probleem melden over ${d.title}`} title="Probleem melden" className="grid size-11 place-items-center rounded-full border-2 border-ink/15 transition hover:border-crust hover:text-crust">
-                                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                  <path d="M5 21V4m0 0h11l-2 4 2 4H5" />
-                                </svg>
-                              </button>
                             </div>
                           </li>
                         );
@@ -181,9 +175,6 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
           <div className="rounded-3xl bg-white px-6 py-14 text-center shadow-sm">
             <p className="font-display text-2xl">Geen artikel gevonden voor “{query}”</p>
             <p className="mt-2 text-ink/60">Controleer de schrijfwijze, of zoek op een deel van de naam.</p>
-            <button onClick={() => openReport()} className="mt-5 font-bold text-crust underline">
-              Mist u een fiche? Meld het ons
-            </button>
           </div>
         )}
       </div>

@@ -18,7 +18,6 @@ export async function sendContact(
   const phone = clean(formData.get("phone"), 40);
   const message = clean(formData.get("message"), 3000);
   const privacy = formData.get("privacy") === "on";
-  const newsletter = formData.get("newsletter") === "on";
 
   if (!name || !message || !/^\S+@\S+\.\S+$/.test(email)) {
     return { ok: false, message: "Vul naam, een geldig e-mailadres en uw vraag in." };
@@ -42,7 +41,7 @@ export async function sendContact(
       "Content-Type": "application/json",
       Prefer: "return=minimal",
     },
-    body: JSON.stringify({ name, company, email, phone, message, newsletter }),
+    body: JSON.stringify({ name, company, email, phone, message }),
   });
 
   if (!res.ok) {
