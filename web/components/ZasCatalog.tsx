@@ -9,8 +9,6 @@ export type ZasDoc = {
   description: string | null;
   file_name: string;
   size_bytes: number | null;
-  viewUrl?: string;
-  downloadUrl?: string;
 };
 export type ZasGroup = { product: string; docs: ZasDoc[] };
 
@@ -154,18 +152,14 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
                               </div>
                             </div>
                             <div className="mt-auto flex items-center gap-2">
-                              {d.viewUrl && (
-                                <a href={d.viewUrl} target="_blank" rel="noopener noreferrer" className="flex-1 rounded-full bg-ink px-4 py-2.5 text-center font-bold text-flour transition hover:bg-crust">
-                                  Raadplegen
-                                </a>
-                              )}
-                              {d.downloadUrl && (
-                                <a href={d.downloadUrl} aria-label={`Download ${d.title}`} title="Downloaden" className="grid size-11 place-items-center rounded-full border-2 border-ink/15 transition hover:border-crust hover:text-crust">
-                                  <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                    <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />
-                                  </svg>
-                                </a>
-                              )}
+                              <a href={`/ZAS/file/${d.id}`} target="_blank" rel="noopener noreferrer" className="flex-1 rounded-full bg-ink px-4 py-2.5 text-center font-bold text-flour transition hover:bg-crust">
+                                Raadplegen
+                              </a>
+                              <a href={`/ZAS/file/${d.id}?download=1`} aria-label={`Download ${d.title}`} title="Downloaden" className="grid size-11 place-items-center rounded-full border-2 border-ink/15 transition hover:border-crust hover:text-crust">
+                                <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                  <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />
+                                </svg>
+                              </a>
                               <button type="button" onClick={() => openReport(d.title)} aria-label={`Probleem melden over ${d.title}`} title="Probleem melden" className="grid size-11 place-items-center rounded-full border-2 border-ink/15 transition hover:border-crust hover:text-crust">
                                 <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                                   <path d="M5 21V4m0 0h11l-2 4 2 4H5" />

@@ -37,15 +37,7 @@ export default async function Zas() {
     getCategories(),
   ]);
 
-  const items = await Promise.all(
-    (docs ?? []).map(async (d) => {
-      const [view, dl] = await Promise.all([
-        supabase.storage.from("zas-documents").createSignedUrl(d.file_path, 3600),
-        supabase.storage.from("zas-documents").createSignedUrl(d.file_path, 3600, { download: d.file_name }),
-      ]);
-      return { ...d, viewUrl: view.data?.signedUrl, downloadUrl: dl.data?.signedUrl };
-    }),
-  );
+  const items = docs ?? [];
 
   const groups = categories.map((c) => ({
     product: c.name,

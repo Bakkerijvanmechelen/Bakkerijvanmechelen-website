@@ -13,17 +13,15 @@ export default async function ZasDocumenten() {
     getCategories(),
   ]);
 
-  const withUrls = await Promise.all(
-    (docs ?? []).map(async (d) => ({
-      id: d.id as string,
-      title: d.title as string,
-      fileName: d.file_name as string,
-      size: d.size_bytes as number | null,
-      createdAt: d.created_at as string,
-      categoryId: d.category_id as string,
-      viewUrl: (await supabase.storage.from("zas-documents").createSignedUrl(d.file_path, 3600)).data?.signedUrl,
-    })),
-  );
+  const withUrls = (docs ?? []).map((d) => ({
+    id: d.id as string,
+    title: d.title as string,
+    fileName: d.file_name as string,
+    size: d.size_bytes as number | null,
+    createdAt: d.created_at as string,
+    categoryId: d.category_id as string,
+    viewUrl: `/admin/zas/file/${d.id}`,
+  }));
   const groups = categories.map((c) => ({ id: c.id, name: c.name, docs: withUrls.filter((d) => d.categoryId === c.id) }));
 
   return (
