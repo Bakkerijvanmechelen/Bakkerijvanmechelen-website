@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import ZasCatalog from "@/components/ZasCatalog";
 import ZasLogin from "@/components/ZasLogin";
-import { zasProducts } from "@/lib/content";
 import { adminClient } from "@/lib/supabase/admin";
 import { isZasUnlocked } from "@/lib/zas-auth";
+import { getCategories } from "@/lib/zas-data";
 import { lock } from "./actions";
 
 // Deze routes lezen de sessie en kunnen niet vooraf worden opgebouwd.
@@ -31,7 +31,10 @@ export default async function Zas() {
   }
 
   const supabase = adminClient();
-  const { data: docs } = await supabase.from("zas_documents").select("*").order("title");
+  const [{ data: docs }, categories] = await Promise.all([
+    supabase.from("zas_documents").select("*").order("title"),
+    getCategories(),
+  ]);
 
   const items = await Promise.all(
     (docs ?? []).map(async (d) => {
@@ -43,9 +46,9 @@ export default async function Zas() {
     }),
   );
 
-  const groups = zasProducts.map((product) => ({
-    product,
-    docs: items.filter((d) => d.product === product),
+  const groups = categories.map((c) => ({
+    product: c.name,
+    docs: items.filter((d) => d.category_id === c.id),
   }));
 
   return (

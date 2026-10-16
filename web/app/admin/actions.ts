@@ -4,10 +4,11 @@ import crypto from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin-auth";
-import { zasProducts } from "@/lib/content";
+import { readSpec } from "@/lib/pdf-meta";
 import { adminClient } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { setZasPassword } from "@/lib/zas-auth";
+import { getCategories, normCategory, titleFromFileName } from "@/lib/zas-data";
 
 export type FormState = { ok: boolean; message: string } | null;
 
@@ -83,6 +84,67 @@ const cleanName = (name: string) =>
     .replace(/\s+/g, "-")
     .slice(0, 120) || "bestand";
 
+/** Bestanden die door de browser zijn geüpload hebben altijd de vorm "<uuid>/<naam>". */
+const stagedPath = (p: string) => /^[0-9a-f-]{36}\/[^/]+$/i.test(p);
+
+/* ---------- Categorieën ---------- */
+
+function categoryName(raw: FormDataEntryValue | null) {
+  return String(raw ?? "").trim().replace(/\s+/g, " ").slice(0, 60);
+}
+
+export async function createCategory(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const name = categoryName(formData.get("name"));
+  if (!name) return { ok: false, message: "Geef de categorie een naam." };
+  const { error } = await adminClient().from("zas_categories").insert({ name });
+  if (error) return { ok: false, message: error.code === "23505" ? "Die categorie bestaat al." : "Toevoegen mislukt." };
+  revalidatePath("/admin/zas");
+  revalidatePath("/ZAS");
+  return { ok: true, message: `Categorie “${name}” toegevoegd.` };
+}
+
+export async function renameCategory(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const name = categoryName(formData.get("name"));
+  if (!name) return { ok: false, message: "Geef de categorie een naam." };
+  const { error } = await adminClient().from("zas_categories").update({ name }).eq("id", id);
+  if (error) return { ok: false, message: error.code === "23505" ? "Die naam bestaat al." : "Hernoemen mislukt." };
+  revalidatePath("/admin/zas");
+  revalidatePath("/ZAS");
+  return { ok: true, message: "Opgeslagen." };
+}
+
+/**
+ * Verwijdert een categorie met al haar documenten. De naam moet exact worden overgetikt:
+ * dat wordt hier op de server gecontroleerd, niet alleen in de browser.
+ */
+export async function deleteCategory(_prev: FormState, formData: FormData): Promise<FormState> {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  const typed = String(formData.get("confirm") ?? "").trim();
+  const supabase = adminClient();
+
+  const { data: cat } = await supabase.from("zas_categories").select("name").eq("id", id).maybeSingle();
+  if (!cat) return { ok: false, message: "Categorie niet gevonden." };
+  if (typed !== cat.name) return { ok: false, message: "De naam komt niet overeen. Er is niets verwijderd." };
+
+  const { data: docs } = await supabase.from("zas_documents").select("id,file_path").eq("category_id", id);
+  if (docs?.length) {
+    await supabase.storage.from(BUCKET).remove(docs.map((d) => d.file_path));
+    await supabase.from("zas_documents").delete().eq("category_id", id);
+  }
+  const { error } = await supabase.from("zas_categories").delete().eq("id", id);
+  if (error) return { ok: false, message: "Verwijderen mislukt." };
+
+  revalidatePath("/admin/zas");
+  revalidatePath("/ZAS");
+  return { ok: true, message: `Categorie “${cat.name}” verwijderd.` };
+}
+
+/* ---------- Documenten ---------- */
+
 /** Stap 1: de browser krijgt een eenmalige upload-url, zodat grote bestanden niet via de server hoeven. */
 export async function createUpload(fileName: string, size: number) {
   await requireAdmin();
@@ -96,41 +158,130 @@ export async function createUpload(fileName: string, size: number) {
   return { path, token: data.token };
 }
 
-/** Stap 2: na de upload wordt het bestand aan een product gekoppeld. */
-export async function registerDocument(input: {
+export type Proposal = {
   path: string;
   fileName: string;
   title: string;
-  product: string;
-  description: string;
+  source: "pdf" | "bestandsnaam";
+  pdfCategory: string | null;
+  categoryId: string | null;
+  duplicate: boolean;
+};
+
+/** Stap 2: leest uit elke geüploade pdf de productnaam en categorie en doet een voorstel. */
+export async function analyzeUploads(items: { path: string; fileName: string }[]): Promise<Proposal[]> {
+  await requireAdmin();
+  const supabase = adminClient();
+  const [cats, { data: existing }] = await Promise.all([
+    getCategories(),
+    supabase.from("zas_documents").select("title,category_id"),
+  ]);
+
+  const out: Proposal[] = [];
+  for (const it of items) {
+    if (!stagedPath(it.path)) continue;
+    let title = titleFromFileName(it.fileName);
+    let source: Proposal["source"] = "bestandsnaam";
+    let pdfCategory: string | null = null;
+
+    if (/\.pdf$/i.test(it.fileName)) {
+      try {
+        const { data } = await supabase.storage.from(BUCKET).download(it.path);
+        if (data) {
+          const meta = await readSpec(new Uint8Array(await data.arrayBuffer()));
+          if (meta.title) {
+            title = meta.title;
+            source = "pdf";
+          }
+          pdfCategory = meta.category;
+        }
+      } catch {
+        // Onleesbare pdf: we vallen terug op de bestandsnaam.
+      }
+    }
+
+    const match = pdfCategory ? cats.find((c) => normCategory(c.name) === normCategory(pdfCategory!)) : undefined;
+    const duplicate = !!existing?.some(
+      (d) => d.category_id === match?.id && d.title.toLowerCase() === title.toLowerCase(),
+    );
+    out.push({ path: it.path, fileName: it.fileName, title, source, pdfCategory, categoryId: match?.id ?? null, duplicate });
+  }
+  return out;
+}
+
+export type Confirmed = {
+  path: string;
+  fileName: string;
+  title: string;
+  /** Een bestaande categorie-id, of "new:<naam>" om er meteen een aan te maken. */
+  category: string;
   mimeType: string;
   size: number;
-}): Promise<FormState> {
-  await requireAdmin();
-  const title = input.title.trim().slice(0, 160);
-  if (!title) return { ok: false, message: "Geef het document een titel." };
-  if (!zasProducts.includes(input.product)) return { ok: false, message: "Onbekend product." };
+};
 
+/** Stap 3: pas na bevestiging krijgen de documenten hun naam en categorie. */
+export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number; errors: string[] }> {
+  await requireAdmin();
   const supabase = adminClient();
-  const folder = input.path.split("/")[0];
-  const { data: listed } = await supabase.storage.from(BUCKET).list(folder);
-  if (!listed?.some((f) => `${folder}/${f.name}` === input.path)) {
-    return { ok: false, message: "Het bestand is niet aangekomen. Probeer opnieuw." };
+  const cats = await getCategories();
+  const errors: string[] = [];
+  let saved = 0;
+
+  const categoryFor = async (value: string) => {
+    if (!value.startsWith("new:")) return cats.find((c) => c.id === value)?.id ?? null;
+    const name = categoryName(value.slice(4));
+    if (!name) return null;
+    const known = cats.find((c) => normCategory(c.name) === normCategory(name));
+    if (known) return known.id;
+    const { data } = await supabase.from("zas_categories").insert({ name }).select("id,name").single();
+    if (data) cats.push(data);
+    return data?.id ?? null;
+  };
+
+  for (const r of rows) {
+    const title = r.title.trim().slice(0, 160);
+    if (!stagedPath(r.path) || !title) {
+      errors.push(`${r.fileName}: titel ontbreekt`);
+      continue;
+    }
+    const categoryId = await categoryFor(r.category);
+    if (!categoryId) {
+      errors.push(`${r.fileName}: kies een categorie`);
+      continue;
+    }
+    const folder = r.path.split("/")[0];
+    const { data: listed } = await supabase.storage.from(BUCKET).list(folder);
+    if (!listed?.some((f) => `${folder}/${f.name}` === r.path)) {
+      errors.push(`${r.fileName}: bestand niet aangekomen`);
+      continue;
+    }
+    const { error } = await supabase.from("zas_documents").insert({
+      title,
+      category_id: categoryId,
+      file_path: r.path,
+      file_name: r.fileName,
+      mime_type: r.mimeType || null,
+      size_bytes: r.size,
+    });
+    if (error) errors.push(`${r.fileName}: opslaan mislukt`);
+    else saved++;
   }
 
-  const { error } = await supabase.from("zas_documents").insert({
-    title,
-    product: input.product,
-    description: input.description.trim().slice(0, 500) || null,
-    file_path: input.path,
-    file_name: input.fileName,
-    mime_type: input.mimeType || null,
-    size_bytes: input.size,
-  });
-  if (error) return { ok: false, message: "Opslaan mislukt." };
   revalidatePath("/admin/zas");
   revalidatePath("/ZAS");
-  return { ok: true, message: "Document toegevoegd." };
+  return { saved, errors };
+}
+
+/** Gooit bestanden weg die geüpload zijn maar niet bevestigd werden. */
+export async function discardUploads(paths: string[]) {
+  await requireAdmin();
+  const supabase = adminClient();
+  const valid = paths.filter(stagedPath);
+  if (!valid.length) return;
+  const { data: used } = await supabase.from("zas_documents").select("file_path").in("file_path", valid);
+  const usedSet = new Set(used?.map((u) => u.file_path));
+  const toRemove = valid.filter((p) => !usedSet.has(p));
+  if (toRemove.length) await supabase.storage.from(BUCKET).remove(toRemove);
 }
 
 export async function deleteDocument(id: string) {

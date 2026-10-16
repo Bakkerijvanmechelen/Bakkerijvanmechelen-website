@@ -75,6 +75,3 @@ export const testimonials = [
     quote: "Ik werk hier al 19 jaar, broden en pistolets maken blijft een passie.",
   },
 ];
-
-/** Artikelgroepen van de ZAS-pagina, zoals op de vorige website. */
-export const zasProducts = ["01 Brood", "03 Koeken", "04 Pistolets", "05 Patisserie", "06 Vlaaien"];
