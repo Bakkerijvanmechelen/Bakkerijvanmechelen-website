@@ -4,7 +4,7 @@ import { adminClient } from "@/lib/supabase/admin";
 export type Category = { id: string; name: string };
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await adminClient().from("zas_categories").select("id,name").order("name");
+  const { data } = await adminClient().from("zas_categories").select("id,name").order("position").order("name");
   return data ?? [];
 }
 

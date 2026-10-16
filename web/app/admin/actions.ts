@@ -102,7 +102,9 @@ export async function createCategory(_prev: FormState, formData: FormData): Prom
   await requireAdmin();
   const name = categoryName(formData.get("name"));
   if (!name) return { ok: false, message: "Geef de categorie een naam." };
-  const { error } = await adminClient().from("zas_categories").insert({ name });
+  const supabase = adminClient();
+  const { data: last } = await supabase.from("zas_categories").select("position").order("position", { ascending: false }).limit(1).maybeSingle();
+  const { error } = await supabase.from("zas_categories").insert({ name, position: (last?.position ?? 0) + 1 });
   if (error) return { ok: false, message: error.code === "23505" ? "Die categorie bestaat al." : "Toevoegen mislukt." };
   revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
@@ -119,6 +121,22 @@ export async function renameCategory(_prev: FormState, formData: FormData): Prom
   revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
   return { ok: true, message: "Opgeslagen." };
+}
+
+/** Zet een categorie één plaats hoger of lager op de ZAS-pagina. */
+export async function moveCategory(id: string, dir: "up" | "down") {
+  await requireAdmin();
+  const supabase = adminClient();
+  const { data: cats } = await supabase.from("zas_categories").select("id").order("position").order("name");
+  if (!cats) return;
+  const i = cats.findIndex((c) => c.id === id);
+  const j = dir === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= cats.length) return;
+  const order = cats.map((c) => c.id);
+  [order[i], order[j]] = [order[j], order[i]];
+  await Promise.all(order.map((cid, k) => supabase.from("zas_categories").update({ position: k + 1 }).eq("id", cid)));
+  revalidatePath("/admin", "layout");
+  revalidatePath("/ZAS");
 }
 
 /**
@@ -238,7 +256,8 @@ export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number
     if (!name) return null;
     const known = cats.find((c) => normCategory(c.name) === normCategory(name));
     if (known) return known.id;
-    const { data } = await supabase.from("zas_categories").insert({ name }).select("id,name").single();
+    const { data: last } = await supabase.from("zas_categories").select("position").order("position", { ascending: false }).limit(1).maybeSingle();
+    const { data } = await supabase.from("zas_categories").insert({ name, position: (last?.position ?? 0) + 1 }).select("id,name").single();
     if (data) cats.push(data);
     return data?.id ?? null;
   };

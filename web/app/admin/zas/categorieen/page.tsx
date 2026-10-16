@@ -12,8 +12,8 @@ export default async function Categorieen() {
   return (
     <Card title="Categorieën">
       <Help title="Wat zijn categorieën?">
-        <p>Categorieën zijn de uitklapbare groepen op de ZAS-pagina, zoals “01 Brood” of “04 Pistolets”.</p>
-        <p>Ze staan op alfabet. Zet een nummer voor de naam (01, 02, 03…) om zelf de volgorde te bepalen.</p>
+        <p>Categorieën zijn de uitklapbare groepen op de ZAS-pagina, zoals “Brood” of “Pistolets”.</p>
+        <p>Met de pijltjes ▲ ▼ links van elke categorie bepaal je de volgorde op de pagina. Een nieuwe categorie komt onderaan.</p>
         <p>Een categorie hernoemen is veilig: de documenten blijven erin. Een categorie verwijderen wist ook alle documenten erin, en vraagt daarom dat je de naam overtikt.</p>
       </Help>
       <div className="mt-6">

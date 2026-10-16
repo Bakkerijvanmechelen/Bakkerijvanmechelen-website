@@ -18,17 +18,6 @@ const size = (b: number | null) =>
   b == null ? "" : b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
 const ext = (name: string) => name.split(".").pop()?.toUpperCase() ?? "";
 
-/** Een vrolijk icoon bij de categorie; onbekende categorieën krijgen een map. */
-function icon(name: string) {
-  const n = name.toLowerCase();
-  if (n.includes("pistolet")) return "🥖";
-  if (n.includes("koek")) return "🥐";
-  if (n.includes("vlaai")) return "🥧";
-  if (n.includes("patisserie") || n.includes("pattiserie")) return "🍰";
-  if (n.includes("brood")) return "🍞";
-  return "📁";
-}
-
 function Highlight({ text, q }: { text: string; q: string }) {
   if (!q) return <>{text}</>;
   const i = text.toLowerCase().indexOf(q);
@@ -128,13 +117,10 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
                   aria-expanded={isOpen}
                   aria-controls={`zas-${gi}`}
                   onClick={() => toggle(g.product)}
-                  className="group flex w-full items-center gap-4 px-5 py-4 text-left sm:gap-5 sm:px-6 sm:py-5"
+                  className="group flex w-full items-center gap-4 px-6 py-5 text-left sm:px-8 sm:py-6"
                 >
-                  <span aria-hidden className={`grid size-14 shrink-0 place-items-center rounded-2xl text-3xl transition ${isOpen ? "bg-sage-light" : "bg-flour group-hover:bg-sage-light/60"}`}>
-                    {icon(g.product)}
-                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-display text-xl sm:text-2xl">{g.product}</span>
+                    <span className="block font-display text-2xl sm:text-3xl">{g.product}</span>
                     <span className="mt-0.5 block text-sm text-ink/55">
                       {empty ? "Binnenkort beschikbaar" : `${g.docs.length} technische fiche${g.docs.length === 1 ? "" : "s"}`}
                     </span>
