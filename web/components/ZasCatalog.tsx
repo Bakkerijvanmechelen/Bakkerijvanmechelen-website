@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { openReport } from "./ReportDialog";
 
@@ -19,14 +18,15 @@ const size = (b: number | null) =>
   b == null ? "" : b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`;
 const ext = (name: string) => name.split(".").pop()?.toUpperCase() ?? "";
 
-/** Kiest een foto bij de naam van de categorie; onbekende categorieën krijgen een standaardfoto. */
-function photo(name: string) {
+/** Een vrolijk icoon bij de categorie; onbekende categorieën krijgen een map. */
+function icon(name: string) {
   const n = name.toLowerCase();
-  if (n.includes("pistolet")) return "/images/pistolets-industriele-bakker.jpg";
-  if (n.includes("koek")) return "/images/koffiekoeken-industriele-bakker.jpg";
-  if (n.includes("patisserie") || n.includes("pattiserie") || n.includes("vlaai")) return "/images/pattiserie-industriele-bakker.jpg";
-  if (n.includes("brood")) return "/images/bakkerij-van-mechelen-2.jpg";
-  return "/images/ambachtelijk-brood.jpg";
+  if (n.includes("pistolet")) return "🥖";
+  if (n.includes("koek")) return "🥐";
+  if (n.includes("vlaai")) return "🥧";
+  if (n.includes("patisserie") || n.includes("pattiserie")) return "🍰";
+  if (n.includes("brood")) return "🍞";
+  return "📁";
 }
 
 function Highlight({ text, q }: { text: string; q: string }) {
@@ -116,25 +116,31 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
           const isOpen = !!q || open.has(g.product);
           const empty = g.docs.length === 0;
           return (
-            <section key={g.product} data-open={isOpen} className="zas-cat overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-ink/5 transition hover:shadow-lg" style={{ animationDelay: `${gi * 70}ms` }}>
+            <section
+              key={g.product}
+              data-open={isOpen}
+              className={`zas-cat overflow-hidden rounded-3xl border transition ${isOpen ? "border-crust/30 bg-white shadow-md" : "border-ink/10 bg-white hover:border-crust/40 hover:shadow-sm"}`}
+              style={{ animationDelay: `${gi * 70}ms` }}
+            >
               <h2>
                 <button
                   type="button"
                   aria-expanded={isOpen}
                   aria-controls={`zas-${gi}`}
                   onClick={() => toggle(g.product)}
-                  className="group relative flex h-32 w-full items-center justify-between overflow-hidden text-left text-flour sm:h-40"
+                  className="group flex w-full items-center gap-4 px-5 py-4 text-left sm:gap-5 sm:px-6 sm:py-5"
                 >
-                  <Image src={photo(g.product)} alt="" fill sizes="(min-width: 1152px) 1100px, 100vw" className="object-cover transition duration-700 group-hover:scale-105" />
-                  <span className="absolute inset-0 bg-gradient-to-r from-ink/90 via-ink/55 to-ink/10" />
-                  <span className="relative px-6 sm:px-10">
-                    <span className="block font-display text-3xl sm:text-4xl">{g.product}</span>
-                    <span className="mt-2 inline-block rounded-full bg-flour/20 px-3 py-1 text-sm font-bold backdrop-blur">
+                  <span aria-hidden className={`grid size-14 shrink-0 place-items-center rounded-2xl text-3xl transition ${isOpen ? "bg-sage-light" : "bg-flour group-hover:bg-sage-light/60"}`}>
+                    {icon(g.product)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-display text-xl sm:text-2xl">{g.product}</span>
+                    <span className="mt-0.5 block text-sm text-ink/55">
                       {empty ? "Binnenkort beschikbaar" : `${g.docs.length} technische fiche${g.docs.length === 1 ? "" : "s"}`}
                     </span>
                   </span>
-                  <span className="relative mr-6 grid size-12 place-items-center rounded-full bg-flour text-ink transition group-hover:bg-sage-light sm:mr-10">
-                    <svg viewBox="0 0 20 20" className={`size-5 transition-transform duration-500 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <span className={`grid size-10 shrink-0 place-items-center rounded-full transition ${isOpen ? "bg-ink text-flour" : "bg-flour text-ink group-hover:bg-ink group-hover:text-flour"}`}>
+                    <svg viewBox="0 0 20 20" className={`size-4 transition-transform duration-500 ${isOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                       <path d="m4 7 6 6 6-6" />
                     </svg>
                   </span>
@@ -144,13 +150,13 @@ export default function ZasCatalog({ groups }: { groups: ZasGroup[] }) {
               <div id={`zas-${gi}`} className={`grid transition-[grid-template-rows] duration-500 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                 <div className="overflow-hidden">
                   {empty ? (
-                    <p className="px-6 py-8 text-ink/60 sm:px-10">Voor deze groep zijn nog geen technische fiches beschikbaar.</p>
+                    <p className="border-t border-ink/10 px-6 py-6 text-ink/60 sm:px-8">Voor deze groep zijn nog geen technische fiches beschikbaar.</p>
                   ) : (
-                    <ul className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
+                    <ul className="grid gap-3 border-t border-ink/10 bg-flour/50 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3">
                       {g.docs.map((d, i) => {
                         const kind = ext(d.file_name);
                         return (
-                          <li key={d.id} className="doc-card group/card flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-4 transition hover:-translate-y-1 hover:border-crust/40 hover:shadow-lg" style={{ ["--i" as string]: Math.min(i, 12) }}>
+                          <li key={d.id} className="doc-card group/card flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-4 transition hover:-translate-y-0.5 hover:border-crust/40 hover:shadow-md" style={{ ["--i" as string]: Math.min(i, 12) }}>
                             <div className="flex items-start gap-4">
                               <FileIcon kind={kind} />
                               <div className="min-w-0">
