@@ -1,0 +1,4 @@
+_crawl/
+web/node_modules/
+web/.next/
+.env*
