@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
     if (indexable) return [];
     return [{ source: "/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet" }] }];
   },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "jsxdsigtwanxykbmvdhc.supabase.co", pathname: "/storage/v1/object/public/**" }],
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

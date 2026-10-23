@@ -1,7 +1,8 @@
 import SocialIcon from "@/components/SocialIcons";
-import { company } from "@/lib/content";
+import { companyFrom, getContent } from "@/lib/cms";
 
-export default function Footer() {
+export default async function Footer() {
+  const company = companyFrom(await getContent());
   return (
     <footer className="bg-ink text-flour">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3">

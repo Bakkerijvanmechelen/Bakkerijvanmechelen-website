@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
-import { company } from "@/lib/content";
+import { companyFrom, getContent } from "@/lib/cms";
 
 export const metadata: Metadata = { title: "Privacyverklaring | Bakkerij Van Mechelen" };
 
-export default function Privacy() {
+export default async function Privacy() {
+  const company = companyFrom(await getContent());
   return (
     <LegalPage title="Privacyverklaring" updated="oktober 2026">
       <p>

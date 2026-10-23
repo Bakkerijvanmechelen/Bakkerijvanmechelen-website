@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
-import { company } from "@/lib/content";
+import { companyFrom, getContent } from "@/lib/cms";
 
 export const metadata: Metadata = { title: "Cookiebeleid | Bakkerij Van Mechelen" };
 
-export default function Cookiebeleid() {
+export default async function Cookiebeleid() {
+  const company = companyFrom(await getContent());
   return (
     <LegalPage title="Cookiebeleid" updated="oktober 2026">
       <p>

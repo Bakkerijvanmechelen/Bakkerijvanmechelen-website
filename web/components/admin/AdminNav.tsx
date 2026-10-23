@@ -8,6 +8,7 @@ const items = [
   { href: "/admin", label: "Overzicht", icon: Icon.home, exact: true },
   { href: "/admin/berichten", label: "Berichten", icon: Icon.mail, badge: true },
   { href: "/admin/zas", label: "ZAS", icon: Icon.folder },
+  { href: "/admin/teksten", label: "Teksten & foto's", icon: Icon.pencil },
   { href: "/admin/account", label: "Mijn account", icon: Icon.user },
 ];
 
