@@ -4,16 +4,18 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { analyzeUploads, confirmUploads, createUpload, discardUploads, type Proposal } from "@/app/admin/actions";
 import { supabaseBrowser } from "@/lib/supabase/browser";
+import { normTitle } from "@/lib/zas-match";
 import { fieldCls, primaryBtn, secondaryBtn } from "./ui";
 
 type Cat = { id: string; name: string };
-type Row = Proposal & { size: number; type: string; title2: string; category: string; include: boolean };
+type Existing = { id: string; title: string; categoryId: string };
+type Row = Proposal & { size: number; type: string; title2: string; category: string; include: boolean; replace: string };
 type Step = "pick" | "busy" | "review" | "done";
 
 const STEPS = ["Kies bestanden", "Controleer", "Klaar"];
 const stepIndex = (s: Step) => (s === "review" ? 1 : s === "done" ? 2 : 0);
 
-export default function UploadWizard({ categories }: { categories: Cat[] }) {
+export default function UploadWizard({ categories, existing }: { categories: Cat[]; existing: Existing[] }) {
   const input = useRef<HTMLInputElement>(null);
   const [step, setStep] = useState<Step>("pick");
   const [picked, setPicked] = useState<File[]>([]);
@@ -23,6 +25,7 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
   const [defaultCat, setDefaultCat] = useState("");
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
   const [saved, setSaved] = useState(0);
+  const [replacedCount, setReplacedCount] = useState(0);
 
   const pick = (files: FileList | File[] | null) => {
     const list = Array.from(files ?? []);
@@ -62,7 +65,8 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
           type: s.type,
           title2: p.title,
           category: p.categoryId ?? (p.pdfCategory ? `new:${p.pdfCategory}` : ""),
-          include: !p.duplicate,
+          include: true,
+          replace: p.replaceId ?? "",
         };
       }),
     );
@@ -70,7 +74,21 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
     setStep(proposals.length ? "review" : "pick");
   }
 
-  const update = (i: number, patch: Partial<Row>) => setRows((r) => r.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  /** Zoekt een bestaande fiche met dezelfde naam in de gekozen categorie. */
+  const matchFor = (title: string, category: string) =>
+    existing.find((d) => d.categoryId === category && normTitle(d.title) === normTitle(title))?.id ?? "";
+  const update = (i: number, patch: Partial<Row>) =>
+    setRows((r) =>
+      r.map((x, j) => {
+        if (j !== i) return x;
+        const next = { ...x, ...patch };
+        // Wijzigt de categorie, dan klopt de gekozen oude fiche niet meer. Zoek opnieuw op naam.
+        if ("category" in patch) next.replace = matchFor(next.title2, next.category);
+        // Typt iemand een bestaande naam in, dan stellen we meteen voor die te vervangen.
+        else if ("title2" in patch && !next.replace) next.replace = matchFor(next.title2, next.category || defaultCat);
+        return next;
+      }),
+    );
   const selected = rows.filter((r) => r.include);
   const missingCat = selected.some((r) => !(r.category || defaultCat));
   const missingTitle = selected.some((r) => !r.title2.trim());
@@ -92,12 +110,13 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
     setStep("busy");
     setStatus({ text: "Documenten worden opgeslagen…", done: 0, total: 0 });
     const res = await confirmUploads(
-      selected.map((r) => ({ path: r.path, fileName: r.fileName, title: r.title2, category: r.category || defaultCat, mimeType: r.type, size: r.size })),
+      selected.map((r) => ({ path: r.path, fileName: r.fileName, title: r.title2, category: r.category || defaultCat, mimeType: r.type, size: r.size, replaceId: r.replace || null })),
     );
     const skipped = rows.filter((r) => !r.include).map((r) => r.path);
     if (skipped.length) await discardUploads(skipped);
     reset();
     setSaved(res.saved);
+    setReplacedCount(res.replaced);
     setNotice(res.errors.length ? { ok: false, text: `Niet gelukt: ${res.errors.join("; ")}` } : null);
     setStep("done");
   }
@@ -209,11 +228,11 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
                   <p className="text-sm text-ink/60">
                     {r.fileName}
                     <span className="ml-2">{r.source === "pdf" ? "· naam uit het document gehaald" : "· naam uit de bestandsnaam"}</span>
-                    {r.duplicate && <span className="ml-2 rounded-full bg-amber-200 px-2 py-0.5 font-bold text-amber-900">staat er al</span>}
+                    {r.replace && <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 font-bold text-sky-900">bestaat al: wordt vervangen</span>}
                   </p>
                   <label className="flex items-center gap-2 font-bold">
                     <input type="checkbox" checked={r.include} onChange={(e) => update(i, { include: e.target.checked })} className="size-5 accent-crust" />
-                    Toevoegen
+                    {r.replace ? "Vervangen" : "Toevoegen"}
                   </label>
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-[2fr_1fr]">
@@ -234,7 +253,26 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
                     </select>
                   </label>
                 </div>
-                {r.duplicate && r.include && <p className="mt-2 text-sm text-amber-900">Let op: er bestaat al een document met deze naam. Vink uit als je het niet dubbel wilt.</p>}
+                {r.include && (
+                  <label className="mt-3 grid gap-1 font-bold">
+                    Wat gebeurt er met dit bestand?
+                    <select value={r.replace} onChange={(e) => update(i, { replace: e.target.value })} className={fieldCls}>
+                      <option value="">Nieuwe fiche toevoegen</option>
+                      {existing
+                        .filter((d) => d.categoryId === r.category || d.id === r.replace)
+                        .map((d) => (
+                          <option key={d.id} value={d.id}>
+                            Vervangt de bestaande fiche: {d.title}
+                          </option>
+                        ))}
+                    </select>
+                  </label>
+                )}
+                {r.replace && r.include && (
+                  <p className="mt-2 text-sm text-sky-900">
+                    De oude fiche wordt vervangen door dit bestand. Ze blijft op dezelfde plek op de ZAS-pagina en er komt geen dubbele bij.
+                  </p>
+                )}
               </li>
             ))}
           </ul>
@@ -271,9 +309,9 @@ export default function UploadWizard({ categories }: { categories: Cat[] }) {
             ✅
           </p>
           <p className="mt-3 font-display text-2xl">
-            {saved} document{saved === 1 ? "" : "en"} toegevoegd
+            {[saved > 0 && `${saved} document${saved === 1 ? "" : "en"} toegevoegd`, replacedCount > 0 && `${replacedCount} fiche${replacedCount === 1 ? "" : "s"} vervangen`].filter(Boolean).join(" · ") || "Niets opgeslagen"}
           </p>
-          <p className="mt-1 text-ink/70">Ze staan nu op de ZAS-pagina.</p>
+          <p className="mt-1 text-ink/70">De wijzigingen staan nu op de ZAS-pagina.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
               onClick={() => {

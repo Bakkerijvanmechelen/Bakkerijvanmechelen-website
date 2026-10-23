@@ -9,6 +9,7 @@ import { adminClient } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
 import { setZasPassword } from "@/lib/zas-auth";
 import { getCategories, normCategory, titleFromFileName } from "@/lib/zas-data";
+import { normTitle } from "@/lib/zas-match";
 
 export type FormState = { ok: boolean; message: string } | null;
 
@@ -189,6 +190,8 @@ export type Proposal = {
   pdfCategory: string | null;
   categoryId: string | null;
   duplicate: boolean;
+  /** Id van de bestaande fiche die dit bestand vervangt (zelfde naam), of null als het een nieuwe fiche is. */
+  replaceId: string | null;
 };
 
 /** Stap 2: leest uit elke geüploade pdf de productnaam en categorie en doet een voorstel. */
@@ -197,7 +200,7 @@ export async function analyzeUploads(items: { path: string; fileName: string }[]
   const supabase = adminClient();
   const [cats, { data: existing }] = await Promise.all([
     getCategories(),
-    supabase.from("zas_documents").select("title,category_id"),
+    supabase.from("zas_documents").select("id,title,category_id"),
   ]);
 
   const out: Proposal[] = [];
@@ -224,10 +227,9 @@ export async function analyzeUploads(items: { path: string; fileName: string }[]
     }
 
     const match = pdfCategory ? cats.find((c) => normCategory(c.name) === normCategory(pdfCategory!)) : undefined;
-    const duplicate = !!existing?.some(
-      (d) => d.category_id === match?.id && d.title.toLowerCase() === title.toLowerCase(),
-    );
-    out.push({ path: it.path, fileName: it.fileName, title, source, pdfCategory, categoryId: match?.id ?? null, duplicate });
+    const same = (existing ?? []).filter((d) => normTitle(d.title) === normTitle(title));
+    const replace = same.find((d) => d.category_id === match?.id) ?? (same.length === 1 && !match ? same[0] : undefined);
+    out.push({ path: it.path, fileName: it.fileName, title, source, pdfCategory, categoryId: match?.id ?? replace?.category_id ?? null, duplicate: !!replace, replaceId: replace?.id ?? null });
   }
   return out;
 }
@@ -240,15 +242,18 @@ export type Confirmed = {
   category: string;
   mimeType: string;
   size: number;
+  /** Bestaande fiche die door dit bestand vervangen wordt. Leeg = nieuwe fiche. */
+  replaceId?: string | null;
 };
 
 /** Stap 3: pas na bevestiging krijgen de documenten hun naam en categorie. */
-export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number; errors: string[] }> {
+export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number; replaced: number; errors: string[] }> {
   await requireAdmin();
   const supabase = adminClient();
   const cats = await getCategories();
   const errors: string[] = [];
   let saved = 0;
+  let replaced = 0;
 
   const categoryFor = async (value: string) => {
     if (!value.startsWith("new:")) return cats.find((c) => c.id === value)?.id ?? null;
@@ -279,21 +284,40 @@ export async function confirmUploads(rows: Confirmed[]): Promise<{ saved: number
       errors.push(`${r.fileName}: bestand niet aangekomen`);
       continue;
     }
-    const { error } = await supabase.from("zas_documents").insert({
+    const fields = {
       title,
       category_id: categoryId,
       file_path: r.path,
       file_name: r.fileName,
       mime_type: r.mimeType || null,
       size_bytes: r.size,
-    });
+    };
+
+    if (r.replaceId) {
+      // Vervangen: dezelfde fiche, nieuw bestand. Het oude bestand wordt pas na het slagen weggegooid.
+      const { data: old } = await supabase.from("zas_documents").select("id,file_path").eq("id", r.replaceId).maybeSingle();
+      if (!old) {
+        errors.push(`${r.fileName}: de fiche die vervangen moest worden bestaat niet meer`);
+        continue;
+      }
+      const { error } = await supabase.from("zas_documents").update(fields).eq("id", old.id);
+      if (error) {
+        errors.push(`${r.fileName}: vervangen mislukt`);
+        continue;
+      }
+      if (old.file_path !== r.path) await supabase.storage.from(BUCKET).remove([old.file_path]);
+      replaced++;
+      continue;
+    }
+
+    const { error } = await supabase.from("zas_documents").insert(fields);
     if (error) errors.push(`${r.fileName}: opslaan mislukt`);
     else saved++;
   }
 
   revalidatePath("/admin", "layout");
   revalidatePath("/ZAS");
-  return { saved, errors };
+  return { saved, replaced, errors };
 }
 
 /** Gooit bestanden weg die geüpload zijn maar niet bevestigd werden. */

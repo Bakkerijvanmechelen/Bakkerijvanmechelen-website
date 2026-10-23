@@ -30,10 +30,11 @@ export default async function ZasDocumenten() {
         <Help title="Zo voeg je een technische fiche toe">
           <p>1. Sleep de pdf in het vak, of klik erop om hem te kiezen. Meerdere tegelijk mag.</p>
           <p>2. Controleer de naam en de categorie die het systeem uit de pdf haalt. Pas aan wat niet klopt.</p>
-          <p>3. Klik op “Bevestigen en opslaan”. Pas dan komt het document op de ZAS-pagina.</p>
+          <p>3. Bestaat de fiche al (zelfde naam)? Dan staat er “Vervangt de bestaande fiche”: de oude wordt vervangen door de nieuwe, er komt geen dubbele bij.</p>
+          <p>4. Klik op “Bevestigen en opslaan”. Pas dan komt het document op de ZAS-pagina.</p>
         </Help>
         <div className="mt-6">
-          <UploadWizard categories={categories} />
+          <UploadWizard categories={categories} existing={withUrls.map((d) => ({ id: d.id, title: d.title, categoryId: d.categoryId }))} />
         </div>
       </Card>
 
