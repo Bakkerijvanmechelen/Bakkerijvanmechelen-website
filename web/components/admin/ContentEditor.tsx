@@ -115,8 +115,8 @@ function SectionForm({ pageId, section, initial }: { pageId: string; section: Se
         <button disabled={pending} className={primaryBtn}>
           {pending ? "Opslaan…" : "Opslaan"}
         </button>
-        {dirty && !pending && <span className="text-sm font-bold text-amber-900">Niet opgeslagen wijzigingen</span>}
-        {state && !dirty && (
+        {dirty && !pending && (!state || state.ok) && <span className="text-sm font-bold text-amber-900">Niet opgeslagen wijzigingen</span>}
+        {state && (!dirty || !state.ok) && !pending && (
           <span role={state.ok ? "status" : "alert"} className={`text-sm font-bold ${state.ok ? "text-green-800" : "text-red-700"}`}>
             {state.ok ? "✓ " : ""}
             {state.message}
