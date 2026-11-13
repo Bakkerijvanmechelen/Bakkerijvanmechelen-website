@@ -17,7 +17,7 @@ export default async function Home() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="relative flex min-h-[92vh] items-end overflow-hidden bg-ink text-flour">
+        <section className="relative flex min-h-[min(62vh,640px)] items-end overflow-hidden bg-ink text-flour">
           <Image
             src={c["home.hero.image"]}
             alt="Ambachtelijk brood met bloem bestoven korst"
@@ -27,11 +27,11 @@ export default async function Home() {
             className="hero-zoom object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-          <div className="relative mx-auto w-full max-w-6xl px-5 pb-20 pt-40">
+          <div className="relative mx-auto w-full max-w-6xl px-5 pb-12 pt-32">
             <p className="fade-up mb-4 text-sm font-bold uppercase tracking-[0.3em] text-sage-light">
               {c["home.hero.eyebrow"]}
             </p>
-            <h1 className="fade-up max-w-3xl font-display text-5xl leading-[1.05] sm:text-7xl" style={{ animationDelay: "120ms" }}>
+            <h1 className="fade-up max-w-3xl font-display text-4xl leading-[1.05] sm:text-6xl" style={{ animationDelay: "120ms" }}>
               {c["home.hero.title"]}
             </h1>
             <div className="fade-up mt-6 max-w-2xl space-y-4 text-lg leading-relaxed text-flour/90" style={{ animationDelay: "260ms" }}>
@@ -48,7 +48,7 @@ export default async function Home() {
         </section>
 
         {/* Producten */}
-        <section id="producten" className="mx-auto max-w-6xl px-5 py-24">
+        <section id="producten" className="mx-auto max-w-6xl px-5 pb-24 pt-14 md:pt-16">
           <Reveal><h2 className="font-display text-4xl sm:text-5xl">{c["home.products.title"]}</h2></Reveal>
           <div className="mt-4 max-w-2xl space-y-3 text-lg">
             <Rich text={c["home.products.intro"]} />
