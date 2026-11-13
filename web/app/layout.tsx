@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Lato } from "next/font/google";
 import ConsentHead from "@/components/ConsentHead";
 import CookieBanner from "@/components/CookieBanner";
+import { SITE_URL } from "@/lib/site-url";
 import "./globals.css";
 
 const lato = Lato({
@@ -16,6 +17,8 @@ const fraunces = Fraunces({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  alternates: { canonical: "./" },
   title: "Bakkerij Van Mechelen: vakmanschap & traditie",
   description:
     "Bakkerij Van Mechelen is een ambachtelijke bakkerij in Schoten die sinds 2003 pistolets, brood, patisserie en vlaaien bakt voor bakkerswinkels, evenementen en instellingen.",
