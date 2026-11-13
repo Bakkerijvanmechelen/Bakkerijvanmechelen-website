@@ -1,3 +1,4 @@
+import { CookieSettingsButton } from "@/components/CookieBanner";
 import SocialIcon from "@/components/SocialIcons";
 import { companyFrom, getContent } from "@/lib/cms";
 
@@ -38,7 +39,9 @@ export default async function Footer() {
         ·{" "}
         <a href="/cookiebeleid" className="underline">
           Cookiebeleid
-        </a>
+        </a>{" "}
+        ·{" "}
+        <CookieSettingsButton className="underline" />
       </div>
     </footer>
   );

@@ -79,3 +79,20 @@ section[id] {
 @media (prefers-reduced-motion: reduce) {
   .zas-cat, .zas-cat[data-open="true"] .doc-card { animation: none; }
 }
+
+/* Cookiebanner (vanilla-cookieconsent) in de huisstijl */
+#cc-main {
+  --cc-font-family: inherit;
+  --cc-btn-primary-bg: #1b1511;
+  --cc-btn-primary-border-color: #1b1511;
+  --cc-btn-primary-hover-bg: #b5651d;
+  --cc-btn-primary-hover-border-color: #b5651d;
+  --cc-btn-secondary-bg: #f1ece4;
+  --cc-btn-secondary-hover-bg: #e6dfd3;
+  --cc-toggle-on-bg: #b5651d;
+  --cc-link-color: #b5651d;
+  --cc-modal-border-radius: 1rem;
+  --cc-btn-border-radius: 999px;
+}
+/* De reCAPTCHA-badge mag weg zolang de vermelding bij het formulier staat. */
+.grecaptcha-badge { visibility: hidden; }

@@ -1,5 +1,7 @@
 "use server";
 
+import { verifyRecaptcha } from "@/lib/recaptcha";
+
 export type ContactState = { ok: boolean; message: string } | null;
 
 const clean = (v: FormDataEntryValue | null, max: number) =>
@@ -24,6 +26,9 @@ export async function sendContact(
   }
   if (!privacy) {
     return { ok: false, message: "Bevestig de privacyverklaring om te verzenden." };
+  }
+  if (!(await verifyRecaptcha(clean(formData.get("recaptcha"), 4000), "contact"))) {
+    return { ok: false, message: "De spamcontrole is mislukt. Wacht even en probeer opnieuw, of mail ons." };
   }
 
   const url = process.env.SUPABASE_URL;

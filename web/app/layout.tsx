@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Lato } from "next/font/google";
+import ConsentHead from "@/components/ConsentHead";
+import CookieBanner from "@/components/CookieBanner";
 import "./globals.css";
 
 const lato = Lato({
@@ -25,7 +27,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="nl" className={`${lato.variable} ${fraunces.variable}`}>
-      <body className="antialiased">{children}</body>
+      <head>
+        <ConsentHead />
+      </head>
+      <body className="antialiased">
+        {children}
+        <CookieBanner />
+      </body>
     </html>
   );
 }
