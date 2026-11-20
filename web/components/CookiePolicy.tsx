@@ -6,13 +6,20 @@ type Row = [name: string, purpose: string, provider: string, term: string];
 /**
  * Inhoud van het cookiebeleid, gedeeld door alle sites. Elke site geeft aan wat er bij haar van toepassing is.
  */
-export default function CookiePolicy({ recaptcha = false, zas = false, map = false, email }: { recaptcha?: boolean; zas?: boolean; map?: boolean; email?: string }) {
+export default function CookiePolicy({ recaptcha = false, zas = false, map = false, analyticsId, email }: { recaptcha?: boolean; zas?: boolean; map?: boolean; analyticsId?: string; email?: string }) {
   const necessary: Row[] = [
     ["cc_cookie", "Onthoudt uw cookiekeuze, zodat de banner niet bij elk bezoek terugkomt.", "Deze website", "6 maanden"],
     ...(zas ? ([["zas_session", "Onthoudt dat u bent aangemeld op de afgeschermde ZAS-pagina.", "Deze website", "Maximaal 7 dagen"]] as Row[]) : []),
     ["sb-… (aanmeldcookies)", "Houden beheerders ingelogd in het beheergedeelte. Bezoekers krijgen deze cookies niet.", "Deze website (Supabase)", "Sessie / maximaal 1 week"],
     ...(recaptcha ? ([["_GRECAPTCHA", "Beschermt het contactformulier tegen spam en misbruik (reCAPTCHA). Wordt pas geladen als u het formulier gebruikt.", "Google", "6 maanden"]] as Row[]) : []),
   ];
+
+  const stats: Row[] = analyticsId
+    ? [
+        ["_ga", "Onderscheidt bezoekers van elkaar, zodat we kunnen tellen hoeveel mensen de website bezoeken (Google Analytics).", "Google", "2 jaar"],
+        [`_ga_${analyticsId.replace(/^G-/, "")}`, "Onthoudt de status van uw bezoek voor Google Analytics.", "Google", "2 jaar"],
+      ]
+    : [];
 
   return (
     <>
@@ -51,10 +58,41 @@ export default function CookiePolicy({ recaptcha = false, zas = false, map = fal
       </table>
 
       <h2>Statistieken en marketing</h2>
-      <p>
-        Op dit moment gebruiken we geen statistiek- of marketingcookies. Als we die later toevoegen (bijvoorbeeld Google Analytics), worden ze pas geplaatst nadat u daarvoor
-        toestemming gaf in de cookiebanner. We gebruiken daarvoor Google Consent Mode v2: zolang u geen toestemming geeft, slaan Google-diensten niets op uw toestel op.
-      </p>
+      {stats.length ? (
+        <>
+          <p>
+            Met Google Analytics meten we hoe bezoekers de website gebruiken, zodat we die kunnen verbeteren. Deze cookies worden pas geplaatst nadat u toestemming gaf voor
+            &ldquo;Statistieken&rdquo; in de cookiebanner. We gebruiken Google Consent Mode v2: zolang u geen toestemming geeft, plaatst Google geen cookies op uw toestel en
+            ontvangt Google enkel anonieme meldingen zonder cookies of identificatie (bijvoorbeeld dat een pagina bekeken werd). IP-adressen worden door Google Analytics niet
+            bewaard. We gebruiken geen marketingcookies.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Cookie</th>
+                <th>Doel</th>
+                <th>Van</th>
+                <th>Bewaartermijn</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.map(([n, p, v, t]) => (
+                <tr key={n}>
+                  <td>{n}</td>
+                  <td>{p}</td>
+                  <td>{v}</td>
+                  <td>{t}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <p>
+          Op dit moment gebruiken we geen statistiek- of marketingcookies. Als we die later toevoegen (bijvoorbeeld Google Analytics), worden ze pas geplaatst nadat u daarvoor
+          toestemming gaf in de cookiebanner. We gebruiken daarvoor Google Consent Mode v2: zolang u geen toestemming geeft, slaan Google-diensten niets op uw toestel op.
+        </p>
+      )}
 
       <h2>Externe diensten</h2>
       <p>

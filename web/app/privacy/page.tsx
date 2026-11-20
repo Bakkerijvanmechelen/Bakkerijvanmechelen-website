@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Privacyverklaring | Bakkerij Van Mec
 export default async function Privacy() {
   const company = companyFrom(await getContent());
   return (
-    <LegalPage title="Privacyverklaring" updated="oktober 2026">
+    <LegalPage title="Privacyverklaring" updated="november 2026">
       <p>
         {company.legalName} hecht veel belang aan de bescherming van uw persoonsgegevens. In deze verklaring leest u welke gegevens
         wij verzamelen via deze website, waarom, en welke rechten u heeft.
@@ -50,6 +50,11 @@ export default async function Privacy() {
             <td>Technische gegevens zoals IP-adres en browsertype in de serverlogs van onze hostingpartner</td>
             <td>Veiligheid en goede werking van de website. Rechtsgrond: gerechtvaardigd belang.</td>
           </tr>
+          <tr>
+            <td>Websitestatistieken</td>
+            <td>Gegevens over uw bezoek (bekeken pagina&apos;s, toestel, browser, ongeveer de regio), via Google Analytics</td>
+            <td>Begrijpen hoe de website gebruikt wordt en ze verbeteren. Rechtsgrond: uw toestemming via de cookiebanner. Zonder toestemming worden geen cookies geplaatst.</td>
+          </tr>
         </tbody>
       </table>
       <p>Wij sturen geen nieuwsbrieven en gebruiken uw gegevens niet voor reclame. Wij nemen geen geautomatiseerde beslissingen op basis van uw gegevens.</p>
@@ -63,7 +68,7 @@ export default async function Privacy() {
       <h2>Met wie delen wij uw gegevens?</h2>
       <p>
         Alleen met partijen die ons helpen de website te laten werken en die in onze opdracht handelen (verwerkers): onze
-        hostingpartner (Vercel), onze databaseleverancier (Supabase) en Google (reCAPTCHA, om het contactformulier tegen spam te beschermen). Met hen zijn verwerkersafspraken gemaakt. Wij verkopen uw
+        hostingpartner (Vercel), onze databaseleverancier (Supabase) en Google (reCAPTCHA, om het contactformulier tegen spam te beschermen, en Google Analytics voor websitestatistieken als u daarvoor toestemming geeft). Met hen zijn verwerkersafspraken gemaakt. Wij verkopen uw
         gegevens nooit aan derden. Als gegevens buiten de Europese Economische Ruimte verwerkt worden, gebeurt dat enkel met passende
         waarborgen, zoals de standaardcontractbepalingen van de Europese Commissie.
       </p>
