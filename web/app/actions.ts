@@ -2,6 +2,7 @@
 
 import { mailHtml, mailText, sendMail } from "@/lib/mail";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { checkSpam } from "@/lib/spam";
 import { SITE_URL } from "@/lib/site-url";
 
 export type ContactState = { ok: boolean; message: string } | null;
@@ -13,8 +14,6 @@ export async function sendContact(
   _prev: ContactState,
   formData: FormData,
 ): Promise<ContactState> {
-  // Honeypot: bots vullen dit verborgen veld in.
-  if (clean(formData.get("website"), 100)) return { ok: true, message: "Bedankt!" };
 
   const name = clean(formData.get("name"), 120);
   const company = clean(formData.get("company"), 120);
@@ -29,6 +28,10 @@ export async function sendContact(
   if (!privacy) {
     return { ok: false, message: "Bevestig de privacyverklaring om te verzenden." };
   }
+  // Bots krijgen een gewone bedankmelding, zodat ze niet merken dat ze tegengehouden worden.
+  const spam = checkSpam(formData, name, company, message);
+  if (spam === "bot") return { ok: true, message: "Bedankt! We nemen snel contact met u op." };
+  if (spam === "links") return { ok: false, message: "Laat links en webadressen weg uit uw bericht, dan kunnen we het verzenden." };
   if (!(await verifyRecaptcha(clean(formData.get("recaptcha"), 4000), "contact"))) {
     return { ok: false, message: "De spamcontrole is mislukt. Wacht even en probeer opnieuw, of mail ons." };
   }

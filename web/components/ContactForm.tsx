@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { sendContact, type ContactState } from "@/app/actions";
+import FormStartedAt from "@/components/FormStartedAt";
 import RecaptchaField, { RecaptchaNotice } from "@/components/RecaptchaField";
 
 const field =
@@ -41,6 +42,7 @@ export default function ContactForm() {
         <textarea name="message" required rows={5} className={field} />
       </label>
       <RecaptchaField action="contact" />
+      <FormStartedAt />
       {/* Honeypot */}
       <input name="website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
       <label className="flex items-start gap-3 text-sm sm:col-span-2">
