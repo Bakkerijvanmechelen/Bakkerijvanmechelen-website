@@ -2,11 +2,10 @@ import Link from "next/link";
 import { CookieSettingsButton } from "@/components/CookieBanner";
 import { hoursLines, telHref } from "@/lib/shop-types";
 import { getContent, withCount } from "@/lib/cms";
-import { getShops } from "@/lib/shops";
+import { getHeadOffice, getStores } from "@/lib/shops";
 
 export default async function SiteFooter() {
-  const [shops, c] = await Promise.all([getShops(), getContent()]);
-  const main = shops.find((s) => s.kind === "eigen");
+  const [shops, main, c] = await Promise.all([getStores(), getHeadOffice(), getContent()]);
 
   return (
     <footer className="bg-blue-deep text-flour">
@@ -19,7 +18,7 @@ export default async function SiteFooter() {
               <br />
               {main.postal_code} {main.city}
             </p>
-            {hoursLines(main.hours)[0] && <p className="mt-2 text-sm text-flour/60">{hoursLines(main.hours)[0]}</p>}
+            {!main.is_hq && hoursLines(main.hours)[0] && <p className="mt-2 text-sm text-flour/60">{hoursLines(main.hours)[0]}</p>}
           </address>
         )}
         <div className="text-flour/80">

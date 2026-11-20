@@ -16,6 +16,7 @@ export default function ShopForm({ shop, onDone }: { shop?: Shop; onDone?: () =>
   const [v, setV] = useState({
     name: shop?.name ?? "",
     kind: (shop?.kind ?? "groep") as Shop["kind"],
+    is_hq: shop?.is_hq ?? false,
     street: shop?.street ?? "",
     postal_code: shop?.postal_code ?? "",
     city: shop?.city ?? "",
@@ -82,6 +83,14 @@ export default function ShopForm({ shop, onDone }: { shop?: Shop; onDone?: () =>
             ))}
           </div>
         </fieldset>
+
+        <label className="flex items-start gap-3 rounded-xl bg-blue-soft/60 p-4">
+          <input type="checkbox" name="is_hq" checked={v.is_hq} onChange={(e) => setV((p) => ({ ...p, is_hq: e.target.checked }))} className="mt-1 size-5 accent-blue" />
+          <span>
+            <strong>Dit is het hoofdkantoor</strong>
+            <span className="block text-sm text-ink/70">Het adres staat dan in de footer en op de contactpagina, maar niet in het winkeloverzicht en niet op de kaart. Hier kunnen klanten niets kopen.</span>
+          </span>
+        </label>
 
         <label className={label}>
           Naam van de winkel *

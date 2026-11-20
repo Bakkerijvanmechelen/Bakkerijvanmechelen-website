@@ -6,7 +6,7 @@ import Reveal from "@/components/Reveal";
 import { hoursLines, telHref } from "@/lib/shop-types";
 import Rich from "@/components/Rich";
 import { getContent } from "@/lib/cms";
-import { getShops } from "@/lib/shops";
+import { getHeadOffice } from "@/lib/shops";
 
 export const metadata: Metadata = {
   title: "Contact | Gijbels Bakkerij Antwerpen",
@@ -14,8 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Contact() {
-  const [shops, c] = await Promise.all([getShops(), getContent()]);
-  const main = shops.find((s) => s.kind === "eigen");
+  const [main, c] = await Promise.all([getHeadOffice(), getContent()]);
 
   return (
     <>
@@ -41,7 +40,7 @@ export default async function Contact() {
                   </a>
                 </p>
               )}
-              {hoursLines(main.hours).map((l) => (
+              {!main.is_hq && hoursLines(main.hours).map((l) => (
                 <p key={l} className="mt-2 text-white/75">{l}</p>
               ))}
             </address>

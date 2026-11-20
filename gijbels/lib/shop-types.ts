@@ -19,6 +19,8 @@ export type Shop = {
   lng: number | null;
   position: number;
   visible: boolean;
+  /** Hoofdkantoor: adres in de footer en op de contactpagina, maar geen winkel in het overzicht of op de kaart. */
+  is_hq: boolean;
 };
 
 export const kindLabel: Record<Shop["kind"], string> = {

@@ -27,6 +27,7 @@ function Row({ shop, first, last, busy, onMove }: { shop: Shop; first: boolean; 
             <p className="flex flex-wrap items-center gap-2 text-lg font-bold">
               {shop.name}
               {!shop.visible && <Pill tone="grey">Verborgen</Pill>}
+              {shop.is_hq && <Pill tone="amber">Hoofdkantoor, niet in het overzicht</Pill>}
               {shop.lat == null && <Pill tone="amber">Niet op de kaart</Pill>}
             </p>
             <p className="text-ink/70">

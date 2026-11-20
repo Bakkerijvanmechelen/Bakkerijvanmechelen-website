@@ -14,8 +14,19 @@ export async function getShops(): Promise<Shop[]> {
   return [...shops.filter((s) => s.kind === "eigen"), ...shops.filter((s) => s.kind === "groep")];
 }
 
+/** Alleen de echte winkels, zonder het hoofdkantoor: voor het winkeloverzicht, de kaart en het aantal vestigingen. */
+export async function getStores(): Promise<Shop[]> {
+  return (await getShops()).filter((s) => !s.is_hq);
+}
+
+/** Het hoofdkantoor, voor de footer en de contactpagina. Zonder aangeduid hoofdkantoor: de eerste Gijbels-winkel. */
+export async function getHeadOffice(): Promise<Shop | undefined> {
+  const shops = await getShops();
+  return shops.find((s) => s.is_hq) ?? shops.find((s) => s.kind === "eigen");
+}
+
 export async function getShopCount() {
-  return (await getShops()).length;
+  return (await getStores()).length;
 }
 
 /** Alle winkels, ook de verborgen, voor het beheer. */

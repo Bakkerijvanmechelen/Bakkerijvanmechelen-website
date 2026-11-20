@@ -96,6 +96,7 @@ export async function saveShop(_prev: ShopState, formData: FormData): Promise<Sh
   const row = {
     name,
     kind,
+    is_hq: formData.get("is_hq") === "on",
     street,
     postal_code: postal,
     city,
