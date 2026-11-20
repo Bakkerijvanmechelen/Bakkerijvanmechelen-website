@@ -1,16 +1,19 @@
 import DocumentList from "@/components/admin/DocumentList";
+import DownloadStats from "@/components/admin/DownloadStats";
 import UploadWizard from "@/components/admin/UploadWizard";
 import { Card, Help } from "@/components/admin/ui";
 import { requireAdmin } from "@/lib/admin-auth";
 import { adminClient } from "@/lib/supabase/admin";
 import { getCategories } from "@/lib/zas-data";
+import { getDownloadStats } from "@/lib/zas-stats";
 
 export default async function ZasDocumenten() {
   await requireAdmin();
   const supabase = adminClient();
-  const [{ data: docs }, categories] = await Promise.all([
+  const [{ data: docs }, categories, stats] = await Promise.all([
     supabase.from("zas_documents").select("*").order("title"),
     getCategories(),
+    getDownloadStats(),
   ]);
 
   const withUrls = (docs ?? []).map((d) => ({
@@ -22,6 +25,8 @@ export default async function ZasDocumenten() {
     categoryId: d.category_id as string,
     viewUrl: `/admin/zas/file/${d.id}`,
   }));
+  const catName = new Map(categories.map((c) => [c.id, c.name]));
+  const statRows = withUrls.map((d) => ({ id: d.id, title: d.title, category: catName.get(d.categoryId) ?? "", thisMonth: stats.get(d.id)?.thisMonth ?? 0, thisYear: stats.get(d.id)?.thisYear ?? 0 }));
   const groups = categories.map((c) => ({ id: c.id, name: c.name, docs: withUrls.filter((d) => d.categoryId === c.id) }));
 
   return (
@@ -35,6 +40,16 @@ export default async function ZasDocumenten() {
         </Help>
         <div className="mt-6">
           <UploadWizard categories={categories} existing={withUrls.map((d) => ({ id: d.id, title: d.title, categoryId: d.categoryId }))} />
+        </div>
+      </Card>
+
+      <Card title="Downloads">
+        <Help title="Wat wordt hier geteld?">
+          <p>Elke keer dat een klant op de ZAS-pagina een technische fiche opent of downloadt, telt dat als één download. Bekijken hier in het beheer telt niet mee.</p>
+          <p>“Deze maand” en “Dit jaar” volgen de kalender. Op 1 januari begint het jaar opnieuw bij nul. Wordt een fiche vervangen door een nieuwe versie, dan blijven de tellingen behouden.</p>
+        </Help>
+        <div className="mt-6">
+          <DownloadStats rows={statRows} />
         </div>
       </Card>
 

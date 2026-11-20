@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { isZasUnlocked } from "@/lib/zas-auth";
 
@@ -22,6 +22,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .from("zas-documents")
     .createSignedUrl(doc.file_path, 60, download ? { download: doc.file_name } : undefined);
   if (!data?.signedUrl) return new NextResponse("Het document kon niet worden geopend", { status: 502 });
+
+  // Tellen voor het overzicht in het beheer. Gebeurt na het antwoord, zodat de bezoeker niet wacht.
+  after(async () => {
+    const { error } = await supabase.from("zas_document_events").insert({ document_id: id, kind: download ? "download" : "view" });
+    if (error) console.error("ZAS-download tellen mislukt", error.code);
+  });
 
   const res = NextResponse.redirect(data.signedUrl);
   res.headers.set("Cache-Control", "private, no-store");
