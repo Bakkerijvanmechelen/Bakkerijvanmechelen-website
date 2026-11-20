@@ -70,6 +70,13 @@ export default async function Privacy() {
             <td>De gegevens die u zelf meedeelt</td>
             <td>Uw vraag of bestelling behandelen.</td>
           </tr>
+          {process.env.NEXT_PUBLIC_GA4_ID && (
+            <tr>
+              <td>Websitestatistieken</td>
+              <td>Gegevens over uw bezoek (bekeken pagina&apos;s, toestel, browser, ongeveer de regio), via Google Analytics</td>
+              <td>Begrijpen hoe de website gebruikt wordt en ze verbeteren. Rechtsgrond: uw toestemming via de cookiebanner. Zonder toestemming worden geen cookies geplaatst.</td>
+            </tr>
+          )}
         </tbody>
       </table>
       <p>
@@ -80,7 +87,7 @@ export default async function Privacy() {
       <h2>Met wie delen wij uw gegevens?</h2>
       <p>
         Alleen met partijen die ons helpen de website te laten werken en die in onze opdracht handelen (verwerkers): onze hostingpartner (Vercel) en onze
-        databaseleverancier (Supabase). Voor de kaart op de website ontvangt ook Google uw IP-adres. Wij verkopen uw gegevens nooit aan derden. Als gegevens buiten de Europese Economische Ruimte verwerkt worden, gebeurt dat
+        databaseleverancier (Supabase). Voor de kaart op de website ontvangt ook Google uw IP-adres. {process.env.NEXT_PUBLIC_GA4_ID && "Als u daarvoor toestemming geeft, verwerkt Google ook websitestatistieken (Google Analytics). "}Wij verkopen uw gegevens nooit aan derden. Als gegevens buiten de Europese Economische Ruimte verwerkt worden, gebeurt dat
         enkel met passende waarborgen, zoals de standaardcontractbepalingen van de Europese Commissie.
       </p>
 
