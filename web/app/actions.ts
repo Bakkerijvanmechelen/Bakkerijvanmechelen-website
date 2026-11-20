@@ -1,6 +1,5 @@
 "use server";
 
-import { companyFrom, getContent } from "@/lib/cms";
 import { mailHtml, mailText, sendMail } from "@/lib/mail";
 import { verifyRecaptcha } from "@/lib/recaptcha";
 import { SITE_URL } from "@/lib/site-url";
@@ -64,8 +63,9 @@ export async function sendContact(
 async function mailContact(m: { name: string; company: string; email: string; phone: string; message: string }) {
   const brand = "#1b1511";
   const site = "Bakkerij Van Mechelen";
-  const bakery = companyFrom(await getContent()).email;
-  const to = process.env.MAIL_TO || bakery;
+  // Alle meldingen gaan naar de centrale mailbox; de klant antwoordt ook naar daar.
+  const bakery = process.env.MAIL_TO || "info@bakkerijgijbels.be";
+  const to = bakery;
   const rows: [string, string][] = [
     ["Naam", m.name],
     ["Bedrijf", m.company],

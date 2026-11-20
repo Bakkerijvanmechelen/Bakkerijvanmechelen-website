@@ -42,6 +42,7 @@ export async function sendContact(_prev: ContactState, formData: FormData): Prom
 async function mailContact(m: { name: string; email: string; message: string }) {
   const brand = "#263f8f";
   const site = "Bakkerij Gijbels";
+  // Alle meldingen gaan naar de centrale mailbox; de klant antwoordt ook naar daar.
   const bakery = process.env.MAIL_TO || "info@bakkerijgijbels.be";
   const rows: [string, string][] = [
     ["Naam", m.name],
