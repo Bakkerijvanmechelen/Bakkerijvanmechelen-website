@@ -2,6 +2,7 @@ import { CookieSettingsButton } from "@/components/CookieBanner";
 import SocialIcon from "@/components/SocialIcons";
 import { companyFrom, getContent } from "@/lib/cms";
 import { getHeadOfficeHours } from "@/lib/head-office";
+import Link from "next/link";
 
 export default async function Footer() {
   const [content, hours] = await Promise.all([getContent(), getHeadOfficeHours()]);
@@ -25,9 +26,9 @@ export default async function Footer() {
             {company.phone}
           </a>
           <br />
-          <a href={`mailto:${company.email}`} className="hover:text-sage-light">
-            {company.email}
-          </a>
+          <Link href="/#contact" className="hover:text-sage-light">
+            Contactformulier
+          </Link>
         </p>
         <p className="flex items-start gap-3 sm:justify-end">
           <a href={company.facebook} target="_blank" rel="noopener noreferrer" aria-label="Bakkerij Van Mechelen op Facebook" className="grid size-11 place-items-center rounded-full border border-flour/30 transition hover:border-sage-light hover:text-sage-light">

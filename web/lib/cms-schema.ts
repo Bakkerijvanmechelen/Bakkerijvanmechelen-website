@@ -159,7 +159,6 @@ export const schema: ContentPage[] = [
           text("company.street", "Straat en nummer", "Kanaaldijk 255"),
           text("company.city", "Postcode en gemeente", "2900 Schoten"),
           text("company.phone", "Telefoon", "03 322 44 21"),
-          text("company.email", "E-mailadres", "info@bakkerijgijbels.be"),
           text("company.vat", "Ondernemingsnummer", "0458.839.989"),
           text("company.facebook", "Facebook-pagina (link)", "https://www.facebook.com/profile.php?id=61552104110001"),
           text("company.instagram", "Instagram-pagina (link)", "https://www.instagram.com/bakkerijvanmechelen/"),

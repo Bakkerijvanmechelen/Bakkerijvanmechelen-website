@@ -1,4 +1,5 @@
 import { CookieSettingsButton } from "@/components/CookieBanner";
+import Link from "next/link";
 
 type Row = [name: string, purpose: string, provider: string, term: string];
 
@@ -72,7 +73,7 @@ export default function CookiePolicy({ recaptcha = false, zas = false, map = fal
             Mail naar <a href={`mailto:${email}`}>{email}</a>.{" "}
           </>
         ) : (
-          <>Neem contact op via de gegevens op de website. </>
+          <>Stel uw vraag via het <Link href="/#contact">contactformulier</Link>. </>
         )}
         Hoe wij omgaan met uw persoonsgegevens leest u in onze <a href="/privacy">privacyverklaring</a>.
       </p>

@@ -166,11 +166,6 @@ export default async function Home() {
                     {company.phone}
                   </a>
                 </p>
-                <p>
-                  <a href={`mailto:${company.email}`} className="underline">
-                    {company.email}
-                  </a>
-                </p>
               </address>
             </Reveal>
             <Reveal delay={150}>

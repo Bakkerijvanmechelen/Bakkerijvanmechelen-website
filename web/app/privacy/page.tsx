@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import { companyFrom, getContent } from "@/lib/cms";
+import Link from "next/link";
 
 export const metadata: Metadata = { title: "Privacyverklaring | Bakkerij Van Mechelen" };
 
@@ -21,7 +22,7 @@ export default async function Privacy() {
         <br />
         Ondernemingsnummer {company.vat}
         <br />
-        <a href={`mailto:${company.email}`}>{company.email}</a> · <a href={company.phoneHref}>{company.phone}</a>
+        <a href={company.phoneHref}>{company.phone}</a> · <Link href="/#contact">contactformulier</Link>
       </p>
 
       <h2>Welke gegevens verwerken wij en waarom?</h2>
@@ -78,7 +79,7 @@ export default async function Privacy() {
         <li>uw gegevens in een gangbaar formaat te ontvangen (overdraagbaarheid).</li>
       </ul>
       <p>
-        Stuur uw vraag naar <a href={`mailto:${company.email}`}>{company.email}</a>. Wij kunnen u vragen om uw identiteit te bewijzen en
+        Stel uw vraag via het <Link href="/#contact">contactformulier</Link> of per post aan het adres hierboven. Wij kunnen u vragen om uw identiteit te bewijzen en
         antwoorden binnen één maand.
       </p>
 

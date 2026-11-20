@@ -29,7 +29,6 @@ export function companyFrom(c: Content) {
     city: c["company.city"],
     phone: c["company.phone"],
     phoneHref: `tel:${digits.startsWith("0") ? `+32${digits.slice(1)}` : digits}`,
-    email: c["company.email"],
     vat: c["company.vat"],
     facebook: c["company.facebook"],
     instagram: c["company.instagram"],
