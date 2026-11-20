@@ -58,9 +58,9 @@ export default async function Home() {
             return (
               <section key={k} className="relative flex min-h-[min(56vh,600px)] items-center overflow-hidden bg-dark text-flour">
                 <Parallax speed={0.3}>
-                  <Image src={c[`${k}.image`]} alt="" fill priority sizes="100vw" className={`hero-zoom object-cover ${site.style?.heroEmblem ? "opacity-35" : "opacity-60"}`} />
+                  <Image src={c[`${k}.image`]} alt="" fill priority sizes="100vw" className={`hero-zoom object-cover ${site.style?.heroBright ? "opacity-95" : site.style?.heroEmblem ? "opacity-35" : "opacity-60"}`} />
                 </Parallax>
-                <div className="absolute inset-0 bg-gradient-to-r from-dark/90 via-dark/50 to-dark/10" />
+                <div className={`absolute inset-0 bg-gradient-to-r ${site.style?.heroBright ? "from-dark/75 via-dark/30 to-transparent" : "from-dark/90 via-dark/50 to-dark/10"}`} />
                 {site.style?.heroEmblem ? (
                   <div className="relative mx-auto w-full max-w-4xl px-5 pb-12 pt-28 text-center">
                     <div className="fade-up flex items-center justify-center gap-4 md:gap-6">

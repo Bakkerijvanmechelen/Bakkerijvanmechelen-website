@@ -9,6 +9,7 @@ export const zwartearend: SiteDef = {
   metaTitle: "Bakkerij De Zwarte Arend in Deurne: uw lokale bakker",
   metaDescription: "Bakkerij De Zwarte Arend in Deurne is uw brenger van gezelligheid. Want onze heerlijke broden, gebak en patisserie brengen elke dag op smaak. Ontdek meer!",
   theme: { brand: "#6b3d1f", onBrand: "#ffffff", dark: "#1f140c", soft: "#f3eae2" },
+  style: { heroBright: true },
   logo: { src: img("86235538.png"), width: 500, height: 179 },
   shopsTitle: "Contacteer ons",
   shops: [{ match: { name: "Bakkerij De Zwarte Arend", street: "Koningsarendlaan 2" }, label: "Bakkerij De Zwarte Arend" }],

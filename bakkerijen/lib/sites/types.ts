@@ -52,6 +52,8 @@ export type SiteDef = {
     logoSquare?: boolean;
     /** Hero gecentreerd, met het logo als embleem en een lijn in de merkkleur naast de titel. */
     heroEmblem?: boolean;
+    /** Lichtere hero voor een donkere foto: de foto bijna volledig zichtbaar, met een zachter kleurverloop achter de tekst. */
+    heroBright?: boolean;
     /** Inleiding op een vlak in de merkkleur over de volle breedte. */
     introOnBrand?: boolean;
     /** Tekstkolommen zonder kaarten, zoals op de oorspronkelijke site. */
