@@ -1,6 +1,9 @@
 "use server";
 
+import { companyFrom, getContent } from "@/lib/cms";
+import { mailHtml, mailText, sendMail } from "@/lib/mail";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { SITE_URL } from "@/lib/site-url";
 
 export type ContactState = { ok: boolean; message: string } | null;
 
@@ -53,5 +56,26 @@ export async function sendContact(
     console.error("Supabase insert mislukt", res.status);
     return { ok: false, message: "Verzenden is mislukt. Probeer later opnieuw of mail ons." };
   }
+  await mailContact({ name, company, email, phone, message });
   return { ok: true, message: "Bedankt! We nemen snel contact met u op." };
+}
+
+/** Melding naar de bakkerij en bevestiging naar de klant. Een mislukte mail houdt het bericht niet tegen: het staat al in het beheer. */
+async function mailContact(m: { name: string; company: string; email: string; phone: string; message: string }) {
+  const brand = "#1b1511";
+  const site = "Bakkerij Van Mechelen";
+  const bakery = companyFrom(await getContent()).email;
+  const to = process.env.MAIL_TO || bakery;
+  const rows: [string, string][] = [
+    ["Naam", m.name],
+    ["Bedrijf", m.company],
+    ["E-mail", m.email],
+    ["Telefoon", m.phone],
+  ];
+  const notify = { title: "Nieuw bericht via de website", intro: "Er kwam een nieuwe vraag binnen via het contactformulier. Antwoord gewoon op deze mail om de klant te mailen.", rows, message: m.message, button: { label: "Bekijk in het beheer", href: `${SITE_URL}/admin/berichten` } };
+  const confirm = { title: "Bedankt voor uw bericht", intro: `Beste ${m.name}, we hebben uw vraag goed ontvangen en nemen snel contact met u op. Hieronder vindt u een kopie van uw bericht.`, rows: [] as [string, string][], message: m.message };
+  await Promise.all([
+    sendMail({ to, replyTo: m.email, subject: `Nieuw bericht van ${m.name} via de website`, html: mailHtml({ brand, site, ...notify }), text: mailText(notify) }),
+    sendMail({ to: m.email, replyTo: bakery, subject: `Bedankt voor uw bericht aan ${site}`, html: mailHtml({ brand, site, ...confirm }), text: mailText(confirm) }),
+  ]);
 }
