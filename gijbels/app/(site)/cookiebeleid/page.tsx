@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Cookiebeleid | Bakkerij Gijbels" };
 export default function Cookiebeleid() {
   return (
     <LegalPage title="Cookiebeleid" updated="november 2026">
-      <CookiePolicy recaptcha map email="info@bakkerijgijbels.be" />
+      <CookiePolicy recaptcha googleMaps email="info@bakkerijgijbels.be" />
     </LegalPage>
   );
 }

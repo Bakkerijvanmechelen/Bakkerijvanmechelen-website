@@ -87,9 +87,6 @@ h1, h2, h3 { text-wrap: balance; }
   .reveal-hidden { opacity: 1; transform: none; }
 }
 
-/* Leaflet: de kaart mag niet boven het menu uitkomen */
-.leaflet-container { font-family: var(--font-lato), system-ui, sans-serif; z-index: 0; border-radius: inherit; }
-.leaflet-popup-content-wrapper { border-radius: 16px; }
 
 /* Cookiebanner (vanilla-cookieconsent) in de huisstijl */
 #cc-main {

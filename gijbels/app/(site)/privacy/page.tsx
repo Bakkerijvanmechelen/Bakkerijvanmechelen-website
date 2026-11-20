@@ -43,9 +43,9 @@ export default function Privacy() {
             <td>Veiligheid en goede werking van de website. Rechtsgrond: gerechtvaardigd belang.</td>
           </tr>
           <tr>
-            <td>Kaart op de winkelpagina</td>
-            <td>IP-adres, dat uw browser deelt met OpenStreetMap om het kaartmateriaal te laden</td>
-            <td>De kaart tonen. Rechtsgrond: gerechtvaardigd belang.</td>
+            <td>Kaart op de winkelpagina (Google Maps)</td>
+            <td>IP-adres, dat uw browser deelt met Google om de kaart te laden</td>
+            <td>Tonen waar onze winkels liggen. Rechtsgrond: gerechtvaardigd belang.</td>
           </tr>
         </tbody>
       </table>
@@ -60,7 +60,7 @@ export default function Privacy() {
       <h2>Met wie delen wij uw gegevens?</h2>
       <p>
         Alleen met partijen die ons helpen de website te laten werken en die in onze opdracht handelen (verwerkers): onze hostingpartner (Vercel), onze
-        databaseleverancier (Supabase) en Google (reCAPTCHA, om het contactformulier tegen spam te beschermen). Met hen zijn verwerkersafspraken gemaakt. Wij verkopen uw gegevens nooit aan derden. Als gegevens buiten de Europese
+        databaseleverancier (Supabase) en Google (reCAPTCHA, om het contactformulier tegen spam te beschermen, en Google Maps voor de kaart op de winkelpagina). Met hen zijn verwerkersafspraken gemaakt. Wij verkopen uw gegevens nooit aan derden. Als gegevens buiten de Europese
         Economische Ruimte verwerkt worden, gebeurt dat enkel met passende waarborgen, zoals de standaardcontractbepalingen van de Europese Commissie.
       </p>
 

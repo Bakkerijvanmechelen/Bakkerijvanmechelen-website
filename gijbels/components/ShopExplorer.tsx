@@ -1,89 +1,32 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as LMap, LayerGroup, Marker } from "leaflet";
-import { addressLine, routeUrl, type Shop } from "@/lib/shop-types";
+import { useMemo, useState } from "react";
+import { addressLine, type Shop } from "@/lib/shop-types";
 import ShopCard from "./ShopCard";
 
 type Filter = "alle" | "eigen" | "groep";
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-const pin = (color: string, size: number) =>
-  `<svg viewBox="0 0 24 34" width="${size}" height="${Math.round(size * 1.42)}" aria-hidden="true"><path d="M12 0C5.4 0 0 5.2 0 11.7 0 20 12 34 12 34s12-14 12-22.3C24 5.2 18.6 0 12 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="11.5" r="4.5" fill="#fff"/></svg>`;
-
-/** Kaart en lijst van alle winkels: klik op een kaart of een speld en de andere volgt. */
+/**
+ * Lijst van alle winkels met een Google Maps-kaart (zonder API-sleutel).
+ * Zo'n kaart toont één adres tegelijk: de aangeklikte winkel, of de eerste uit de lijst.
+ */
 export default function ShopExplorer({ shops }: { shops: Shop[] }) {
   const [filter, setFilter] = useState<Filter>("alle");
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
-
-  const mapEl = useRef<HTMLDivElement>(null);
-  const map = useRef<LMap | null>(null);
-  const layer = useRef<LayerGroup | null>(null);
-  const markers = useRef(new Map<string, Marker>());
-  const leaflet = useRef<typeof import("leaflet") | null>(null);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return shops.filter((s) => (filter === "alle" || s.kind === filter) && (!q || `${s.name} ${s.city} ${s.postal_code} ${s.street}`.toLowerCase().includes(q)));
   }, [shops, filter, query]);
 
-  // Kaart opbouwen
-  useEffect(() => {
-    let m: LMap | undefined;
-    (async () => {
-      const L = (await import("leaflet")).default;
-      if (!mapEl.current) return;
-      leaflet.current = L;
-      m = L.map(mapEl.current, { scrollWheelZoom: false }).setView([51.23, 4.5], 10);
-      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(m);
-      layer.current = L.layerGroup().addTo(m);
-      map.current = m;
-      m.on("click", () => m?.scrollWheelZoom.enable());
-      m.on("mouseout", () => m?.scrollWheelZoom.disable());
-      setReady(true);
-    })();
-    return () => {
-      m?.remove();
-      map.current = null;
-    };
-  }, []);
-
-  // Spelden bijwerken bij elke filter of zoekopdracht
-  useEffect(() => {
-    const L = leaflet.current;
-    if (!ready || !L || !map.current || !layer.current) return;
-    layer.current.clearLayers();
-    markers.current.clear();
-    const points: [number, number][] = [];
-    for (const s of shown) {
-      if (s.lat == null || s.lng == null) continue;
-      const own = s.kind === "eigen";
-      const icon = L.divIcon({ className: "", html: pin(own ? "#c8873a" : "#263f8f", own ? 34 : 28), iconSize: [own ? 34 : 28, own ? 48 : 40], iconAnchor: [own ? 17 : 14, own ? 48 : 40], popupAnchor: [0, -40] });
-      const marker = L.marker([s.lat, s.lng], { icon, title: s.name })
-        .addTo(layer.current)
-        .bindPopup(`<strong>${esc(s.name)}</strong><br>${esc(addressLine(s))}<br><a href="${routeUrl(s)}" target="_blank" rel="noopener noreferrer" style="color:#263f8f;font-weight:700">Routebeschrijving</a>`)
-        .on("click", () => {
-          setActive(s.id);
-          document.getElementById(`shop-${s.id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        });
-      markers.current.set(s.id, marker);
-      points.push([s.lat, s.lng]);
-    }
-    if (points.length) map.current.fitBounds(points, { padding: [50, 50], maxZoom: 13 });
-  }, [ready, shown]);
+  const current = shown.find((s) => s.id === active) ?? shown[0];
+  const address = current ? addressLine(current) : "";
+  const q = encodeURIComponent(address);
 
   const select = (s: Shop) => {
     setActive(s.id);
-    if (s.lat != null && s.lng != null && map.current) {
-      map.current.flyTo([s.lat, s.lng], 14, { duration: 0.8 });
-      markers.current.get(s.id)?.openPopup();
-    }
+    if (window.matchMedia("(max-width: 1023px)").matches) document.getElementById("winkelkaart")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const tab = (key: Filter, label: string, count: number) => (
@@ -111,7 +54,7 @@ export default function ShopExplorer({ shops }: { shops: Shop[] }) {
           <ul className="grid gap-4">
             {shown.map((s) => (
               <li key={s.id}>
-                <ShopCard shop={s} active={active === s.id} onSelect={() => select(s)} />
+                <ShopCard shop={s} active={current?.id === s.id} onSelect={() => select(s)} />
               </li>
             ))}
           </ul>
@@ -122,13 +65,33 @@ export default function ShopExplorer({ shops }: { shops: Shop[] }) {
           )}
         </div>
 
-        <div className="order-1 lg:sticky lg:top-24 lg:order-2">
-          <div ref={mapEl} role="region" aria-label="Kaart met alle bakkerijen" className="h-[340px] w-full overflow-hidden rounded-2xl bg-blue-soft shadow-md shadow-ink/10 ring-1 ring-ink/10 lg:h-[calc(100vh-8rem)] lg:min-h-[480px]" />
-          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-1 px-2 text-sm text-ink/60">
-            <span><span className="mr-1.5 inline-block size-2.5 rounded-full bg-crust" />Gijbels-winkel</span>
-            <span><span className="mr-1.5 inline-block size-2.5 rounded-full bg-blue" />Bakkerij in de groep</span>
-          </p>
-        </div>
+        {current && (
+          <div id="winkelkaart" className="order-1 scroll-mt-24 lg:sticky lg:top-24 lg:order-2">
+            <div className="overflow-hidden rounded-2xl bg-paper shadow-md shadow-ink/10 ring-1 ring-ink/10">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                <div aria-live="polite">
+                  <p className="font-display text-xl text-blue">{current.name}</p>
+                  <p className="text-sm text-ink/70">{address}</p>
+                </div>
+                <a href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-ink/15 px-4 py-2 text-sm font-bold transition hover:border-blue hover:text-blue">
+                  Openen in Google Maps ↗
+                </a>
+              </div>
+              <iframe
+                key={current.id}
+                title={`Kaart: ${current.name}`}
+                src={`https://maps.google.com/maps?q=${q}&z=15&output=embed`}
+                width="100%"
+                height="100%"
+                className="block h-[340px] w-full border-0 lg:h-[calc(100vh-14rem)] lg:min-h-[420px]"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+            <p className="mt-3 px-2 text-sm text-ink/60">Klik op een winkel in de lijst om ze op de kaart te tonen.</p>
+          </div>
+        )}
       </div>
     </div>
   );

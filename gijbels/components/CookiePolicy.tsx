@@ -5,7 +5,7 @@ type Row = [name: string, purpose: string, provider: string, term: string];
 /**
  * Inhoud van het cookiebeleid, gedeeld door alle sites. Elke site geeft aan wat er bij haar van toepassing is.
  */
-export default function CookiePolicy({ recaptcha = false, zas = false, map = false, email }: { recaptcha?: boolean; zas?: boolean; map?: boolean; email?: string }) {
+export default function CookiePolicy({ recaptcha = false, zas = false, map = false, googleMaps = false, email }: { recaptcha?: boolean; zas?: boolean; map?: boolean; googleMaps?: boolean; email?: string }) {
   const necessary: Row[] = [
     ["cc_cookie", "Onthoudt uw cookiekeuze, zodat de banner niet bij elk bezoek terugkomt.", "Deze website", "6 maanden"],
     ...(zas ? ([["zas_session", "Onthoudt dat u bent aangemeld op de afgeschermde ZAS-pagina.", "Deze website", "Maximaal 7 dagen"]] as Row[]) : []),
@@ -59,6 +59,7 @@ export default function CookiePolicy({ recaptcha = false, zas = false, map = fal
       <p>
         Lettertypes en afbeeldingen worden rechtstreeks vanaf onze eigen website geladen.
         {map && " De kaart gebruikt kaartmateriaal van OpenStreetMap: uw browser maakt daarvoor rechtstreeks verbinding met die dienst, waarbij uw IP-adres wordt gedeeld. Er worden geen cookies geplaatst."}
+        {googleMaps && " De kaart met onze winkel komt van Google Maps. Bij het laden van de pagina ontvangt Google daarbij uw IP-adres, en Google kan eigen cookies plaatsen. Wij hebben daar geen invloed op; meer informatie vindt u in het privacybeleid van Google."}
         {recaptcha && " Het contactformulier is beveiligd met reCAPTCHA van Google."} Wanneer u op een link naar een andere website klikt, gelden de voorwaarden van die website.
       </p>
 
