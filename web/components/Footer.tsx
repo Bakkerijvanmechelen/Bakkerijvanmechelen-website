@@ -1,9 +1,11 @@
 import { CookieSettingsButton } from "@/components/CookieBanner";
 import SocialIcon from "@/components/SocialIcons";
 import { companyFrom, getContent } from "@/lib/cms";
+import { getHeadOfficeHours } from "@/lib/head-office";
 
 export default async function Footer() {
-  const company = companyFrom(await getContent());
+  const [content, hours] = await Promise.all([getContent(), getHeadOfficeHours()]);
+  const company = companyFrom(content);
   return (
     <footer className="bg-ink text-flour">
       <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-3">
@@ -12,6 +14,11 @@ export default async function Footer() {
           <p>{company.street}</p>
           <p>{company.city}</p>
           <p className="mt-2">O.N. {company.vat}</p>
+          {hours.map((l) => (
+            <p key={l} className="mt-2 text-sm text-flour/70">
+              {l}
+            </p>
+          ))}
         </address>
         <p className="leading-relaxed">
           <a href={company.phoneHref} className="hover:text-sage-light">

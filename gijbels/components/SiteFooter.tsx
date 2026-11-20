@@ -18,7 +18,11 @@ export default async function SiteFooter() {
               <br />
               {main.postal_code} {main.city}
             </p>
-            {!main.is_hq && hoursLines(main.hours)[0] && <p className="mt-2 text-sm text-flour/60">{hoursLines(main.hours)[0]}</p>}
+            {hoursLines(main.hours).map((l) => (
+              <p key={l} className="mt-2 text-sm text-flour/60">
+                {l}
+              </p>
+            ))}
           </address>
         )}
         <div className="text-flour/80">
